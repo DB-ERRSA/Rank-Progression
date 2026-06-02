@@ -1,0 +1,23 @@
+name: Rank-Progression
+version: '0.4.0'
+main: me.RedEagle3.rankProgression.RankProgression
+api-version: '1.21'
+
+description: A custom rank progression system made for the ERRSA MC server.
+author: The ERRSA MC Dev Team
+website: https://campusgroups.erau.edu/errsa/craft/
+
+commands:
+  playtime:
+    description: Shows your playtime statistics
+    aliases: [pt]
+  progression:
+    description: Shows your rank progression
+  syncrankprogression:
+    description: Syncs all player rank progression data
+    permission: rankprogression.syncrankprogression
+  saveplaytimedata:
+    description: Exports playtime data for analytics
+    permission: rankprogression.saveplaytimedata
+  ptest:
+    description: Test proxy messaging

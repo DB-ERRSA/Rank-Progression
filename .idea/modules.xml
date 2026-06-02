@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/rank-progression.iml" filepath="$PROJECT_DIR$/rank-progression.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Rank-Progression-Paper/rank-progression-paper.iml" filepath="$PROJECT_DIR$/Rank-Progression-Paper/rank-progression-paper.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Rank-Progression-Proxy/rank-progression-proxy.iml" filepath="$PROJECT_DIR$/Rank-Progression-Proxy/rank-progression-proxy.iml" />
     </modules>
   </component>
 </project>

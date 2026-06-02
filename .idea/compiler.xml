@@ -6,8 +6,12 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="rank-progression" />
+        <module name="rank-progression-paper" />
+        <module name="rank-progression-proxy" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="rank-progression" target="1.5" />
+    </bytecodeTargetLevel>
   </component>
 </project>

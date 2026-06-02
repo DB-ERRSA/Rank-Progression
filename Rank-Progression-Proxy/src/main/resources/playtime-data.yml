@@ -1,0 +1,7 @@
+players:
+  uuid:
+    initialized: false
+    rank-index: 0
+    zenith: false
+    total-playtime: 0
+    server-playtime: {}
