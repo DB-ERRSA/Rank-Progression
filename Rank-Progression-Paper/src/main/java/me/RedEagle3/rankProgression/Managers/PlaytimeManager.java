@@ -35,7 +35,7 @@ public class PlaytimeManager {
     /**
      * Gets playtime in minutes.
      */
-    public long getPlaytimeMinutes(Player player) {
+    public long getLocalPlaytimeMinutes(Player player) {
         return getPlaytimeSeconds(player) / 60L;
     }
 
@@ -43,6 +43,6 @@ public class PlaytimeManager {
      * Gets playtime in hours (rounded down).
      */
     public long getPlaytimeHours(Player player) {
-        return getPlaytimeMinutes(player) / 60L;
+        return getLocalPlaytimeMinutes(player) / 60L;
     }
 }

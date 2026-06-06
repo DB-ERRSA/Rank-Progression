@@ -1,8 +1,8 @@
-package me.RedEagle3.rankProgression.Models;
+package me.RedEagle3.rankProgressionProxy.Models;
 
 import java.util.List;
 
-public class RankMilestone {
+public class RankData {
 
     private final String rankName;
     private final int index;
@@ -11,7 +11,7 @@ public class RankMilestone {
     private final String icon;
     private final String color;
 
-    public RankMilestone(String rankName, int index, long requiredMinutes, List<String> rewards, String icon, String color) {
+    public RankData(String rankName, int index, long requiredMinutes, List<String> rewards, String icon, String color) {
         this.rankName = rankName;
         this.index = index;
         this.requiredMinutes = requiredMinutes;

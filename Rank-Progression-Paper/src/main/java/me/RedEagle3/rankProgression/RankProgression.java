@@ -41,32 +41,27 @@ public class RankProgression extends JavaPlugin {
         LeaderboardGUI leaderboardGUI = new LeaderboardGUI(leaderboardManager, playtimeManager, rankManager, playerDataManager);
 
         // === COMMANDS ===
-        getCommand("playtime").setExecutor(new PlaytimeCommand(playtimeManager, leaderboardGUI, playerDataManager, rankManager));
+        PlaytimeCommand playtimeCommand = new PlaytimeCommand(playtimeManager, leaderboardGUI, playerDataManager, rankManager, proxyMessenger);
+        getCommand("playtime").setExecutor(playtimeCommand);
         getCommand("syncrankprogression").setExecutor(new SyncRankProgressionCommand(this, playtimeManager, rankManager, playerDataManager, leaderboardManager));
         getCommand("progression").setExecutor(new ProgressionCommand(progressionGUI));
         getCommand("saveplaytimedata").setExecutor(savePlaytimeDataCommand);
 
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
-        getServer().getPluginManager().registerEvents(new PlayerJoinListener(this, proxyMessenger), this);
+        getServer().getPluginManager().registerEvents(new PlayerJoinListener(this, proxyMessenger, rankManager), this);
 
-        getServer().getMessenger().registerIncomingPluginChannel(this, "rankprogression:main", new ProxyMessageListener(this, proxyMessenger, initializationManager, rankManager));
+        getServer().getMessenger().registerIncomingPluginChannel(this, "rankprogression:main", new ProxyMessageListener(this, proxyMessenger, initializationManager, rankManager, playtimeCommand));
         Bukkit.getMessenger().registerOutgoingPluginChannel(this, "rankprogression:main");
-
 
         // === STARTUP SYNC ===
         syncOnlinePlayers();
 
-        // === OLD TASKS ===
-        //long interval = getConfig().getLong("check-interval", 5);
-//        new PromotionCheckTask(this, playtimeManager, rankManager, playerDataManager, leaderboardManager
-//        ).runTaskTimer(this, 20L * 60 * interval, 20L * 60 * interval);
+        // initial leaderboard build
+        leaderboardManager.rebuild();
 
         // === TASKS ===
         long interval = getConfig().getLong("check-interval", 5);
         new MainLoop(proxyMessenger).runTaskTimer(this, 20L * 60 * interval, 20L * 60 * interval);
-
-        // initial leaderboard build
-        leaderboardManager.rebuild();
 
         getLogger().info("RankProgression enabled successfully!");
     }

@@ -2,6 +2,7 @@ package me.RedEagle3.rankProgressionProxy;
 
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.connection.PostLoginEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -12,6 +13,7 @@ import me.RedEagle3.rankProgressionProxy.Managers.RankDataManager;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;
+import java.util.UUID;
 
 @Plugin(
         id = "rankprogressionproxy",
@@ -45,7 +47,7 @@ public class RankProgressionProxy {
 
         try {Path dataFolder = Path.of("plugins", "RankProgressionProxy");
             playtimeDataManager = new PlaytimeDataManager(dataFolder);
-            rankDataManager = new RankDataManager();
+            rankDataManager = new RankDataManager(dataFolder);
         }
         catch (Exception e) {
             logger.error("Failed to initialize RankProgressionProxy", e);
@@ -54,5 +56,18 @@ public class RankProgressionProxy {
         server.getEventManager().register(this, new PluginMessageListener(playtimeDataManager, rankDataManager));
 
         logger.info("RankProgressionProxy enabled!");
+    }
+
+    @Subscribe
+    public void onLogin(PostLoginEvent event) {
+
+        UUID uuid = event.getPlayer().getUniqueId();
+
+        if (!playtimeDataManager.isPlayerInitialized(uuid)) {return;}
+
+        int newJoinCount = playtimeDataManager.getJoinCount(uuid) + 1;
+        playtimeDataManager.setJoinCount(uuid, newJoinCount);
+
+        logger.info("TEMP: " + event.getPlayer().getUsername() + " joined, incrementing join-count to: " + newJoinCount);
     }
 }

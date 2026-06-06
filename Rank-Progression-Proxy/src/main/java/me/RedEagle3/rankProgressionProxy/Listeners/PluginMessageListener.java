@@ -9,6 +9,7 @@ import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import me.RedEagle3.rankProgressionProxy.Managers.PlaytimeDataManager;
 import me.RedEagle3.rankProgressionProxy.Managers.RankDataManager;
+import me.RedEagle3.rankProgressionProxy.Models.RankData;
 
 import java.util.UUID;
 
@@ -27,6 +28,9 @@ public class PluginMessageListener {
     @Subscribe
     public void onPluginMessage(PluginMessageEvent event) {
 
+        System.out.println("TEMP: PLUGIN MESSAGE RECEIVED");
+        System.out.println("TEMP: Channel: " + event.getIdentifier().getId());
+
         if (!event.getIdentifier().equals(CHANNEL)) {
             return;
         }
@@ -34,6 +38,8 @@ public class PluginMessageListener {
         ByteArrayDataInput in = ByteStreams.newDataInput(event.getData());
 
         String subChannel = in.readUTF();
+
+        System.out.println("TEMP: SUBCHANNEL = " + subChannel);
 
         switch (subChannel) {
 
@@ -57,6 +63,14 @@ public class PluginMessageListener {
                 handlePlayerPromoted(in);
                 break;
 
+            case "REQUEST_RANK_DATA":
+                handleRankDataRequest(event);
+                break;
+
+            case "REQUEST_PLAYER_STATS":
+                handlePlayerStatsRequest(in, event);
+                break;
+
             default:
                 System.out.println("Unknown subchannel: " + subChannel);
                 break;
@@ -78,26 +92,34 @@ public class PluginMessageListener {
         String username = in.readUTF();
         String server = in.readUTF();
         long minutes = in.readLong();
+        long firstPlayed = in.readLong();
+        int joinCount = in.readInt();
 
-        // always update username
         playtimeDataManager.setUsername(uuid, username);
 
-        playtimeDataManager.updateServerPlaytime(uuid, server, minutes);
-
-        // fetch state
         boolean initialized = playtimeDataManager.isPlayerInitialized(uuid);
-        long totalPlaytime = playtimeDataManager.getTotalPlaytime(uuid);
 
-        // build response
-        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+        if (!initialized) {
 
-        out.writeUTF("PLAYER_INIT_STATUS");
-        out.writeUTF(uuid.toString());
-        out.writeBoolean(initialized);
-        out.writeLong(totalPlaytime);
+            playtimeDataManager.updateServerPlaytime(uuid, server, minutes);
+            playtimeDataManager.setFirstJoin(uuid, firstPlayed);
+            playtimeDataManager.setJoinCount(uuid, joinCount);
 
-        ServerConnection serverConnection = (ServerConnection) event.getSource();
-        serverConnection.sendPluginMessage(MinecraftChannelIdentifier.from("rankprogression:main"), out.toByteArray());
+            long totalPlaytime = playtimeDataManager.getTotalPlaytime(uuid);
+            int rankIndex = rankDataManager.getRankIndexForPlaytime(totalPlaytime);
+
+            playtimeDataManager.setRankIndex(uuid, rankIndex);
+
+            ByteArrayDataOutput out = ByteStreams.newDataOutput();
+
+            out.writeUTF("INITIALIZE_PLAYER");
+            out.writeUTF(uuid.toString());
+            out.writeLong(totalPlaytime);
+            out.writeInt(rankIndex);
+
+            ServerConnection serverConnection = (ServerConnection) event.getSource();
+            serverConnection.sendPluginMessage(MinecraftChannelIdentifier.from("rankprogression:main"), out.toByteArray());
+        }
     }
 
     private void handlePlayerInitialized(ByteArrayDataInput in) {
@@ -106,7 +128,6 @@ public class PluginMessageListener {
         int rankIndex = in.readInt();
 
         playtimeDataManager.setPlayerInitialized(uuid, true);
-        playtimeDataManager.setRankIndex(uuid, rankIndex);
 
         System.out.println("Initialized " + uuid + " at rank " + rankIndex);
     }
@@ -121,12 +142,15 @@ public class PluginMessageListener {
 
         boolean promoted = expectedRank > currentRank;
 
+        String track = rankDataManager.getTrackName();
+
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
 
         out.writeUTF("PROMOTION_RESULT");
         out.writeUTF(uuid.toString());
         out.writeBoolean(promoted);
-        out.writeInt(expectedRank);
+        out.writeInt(currentRank+1); // TODO: Changed this from expectedRank to currentRank+1 to handle if you're behind a rank, not tested though
+        out.writeUTF(track);
 
         ServerConnection serverConnection = (ServerConnection) event.getSource();
         serverConnection.sendPluginMessage(MinecraftChannelIdentifier.from("rankprogression:main"), out.toByteArray());
@@ -138,5 +162,50 @@ public class PluginMessageListener {
         int rankIndex = in.readInt();
 
         playtimeDataManager.setRankIndex(uuid, rankIndex);
+    }
+
+    private void handleRankDataRequest(PluginMessageEvent event) {
+
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+
+        out.writeUTF("RANK_DATA_RESPONSE");
+
+        out.writeInt(rankDataManager.getRanks().size());
+
+        for (RankData rank : rankDataManager.getRanks()) {
+
+            out.writeUTF(rank.getRankName());
+            out.writeInt(rank.getIndex());
+            out.writeLong(rank.getRequiredMinutes());
+            out.writeInt(rank.getRewards().size()); for (String reward : rank.getRewards()) {out.writeUTF(reward);}
+            out.writeUTF(rank.getIcon());
+            out.writeUTF(rank.getColor());
+        }
+
+        System.out.println("TEMP: Sending " + rankDataManager.getRanks().size() + " ranks");
+
+        ServerConnection serverConnection = (ServerConnection) event.getSource();
+        serverConnection.sendPluginMessage(CHANNEL, out.toByteArray());
+    }
+
+    private void handlePlayerStatsRequest(ByteArrayDataInput in, PluginMessageEvent event) {
+
+        UUID uuid = UUID.fromString(in.readUTF());
+        long totalPlaytime = playtimeDataManager.getTotalPlaytime(uuid);
+        int rankIndex = playtimeDataManager.getRankIndex(uuid);
+        long firstJoin = playtimeDataManager.getFirstJoin(uuid);
+        int joinCount = playtimeDataManager.getJoinCount(uuid);
+
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+
+        out.writeUTF("PLAYER_STATS_RESPONSE");
+        out.writeUTF(uuid.toString());
+        out.writeLong(totalPlaytime);
+        out.writeInt(rankIndex);
+        out.writeLong(firstJoin);
+        out.writeInt(joinCount);
+
+        ServerConnection connection = (ServerConnection) event.getSource();
+        connection.sendPluginMessage(CHANNEL, out.toByteArray());
     }
 }

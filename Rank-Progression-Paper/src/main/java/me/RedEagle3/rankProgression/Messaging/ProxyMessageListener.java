@@ -2,14 +2,18 @@ package me.RedEagle3.rankProgression.Messaging;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import me.RedEagle3.rankProgression.Commands.PlaytimeCommand;
 import me.RedEagle3.rankProgression.Managers.PlayerInitializationManager;
 import me.RedEagle3.rankProgression.Managers.RankManager;
+import me.RedEagle3.rankProgression.Models.RankMilestone;
 import me.RedEagle3.rankProgression.Utils.TextFormatter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class ProxyMessageListener implements PluginMessageListener {
@@ -18,12 +22,14 @@ public class ProxyMessageListener implements PluginMessageListener {
     private final ProxyMessenger proxyMessenger;
     private final PlayerInitializationManager initializationManager;
     private final RankManager rankManager;
+    private final PlaytimeCommand playtimeCommand;
 
-    public ProxyMessageListener(JavaPlugin plugin, ProxyMessenger proxyMessenger, PlayerInitializationManager initializationManager, RankManager rankManager) {
+    public ProxyMessageListener(JavaPlugin plugin, ProxyMessenger proxyMessenger, PlayerInitializationManager initializationManager, RankManager rankManager, PlaytimeCommand playtimeCommand) {
         this.plugin = plugin;
         this.proxyMessenger = proxyMessenger;
         this.initializationManager = initializationManager;
         this.rankManager = rankManager;
+        this.playtimeCommand = playtimeCommand;
     }
 
     @Override
@@ -37,12 +43,20 @@ public class ProxyMessageListener implements PluginMessageListener {
 
         switch (subChannel) {
 
-            case "PLAYER_INIT_STATUS":
-                handleInitStatus(in);
+            case "INITIALIZE_PLAYER":
+                initializePlayer(in);
                 break;
 
             case "PROMOTION_RESULT":
                 handlePromotionResult(in);
+                break;
+
+            case "RANK_DATA_RESPONSE":
+                handleRankDataResponse(in);
+                break;
+
+            case "PLAYER_STATS_RESPONSE":
+                handlePlayerStatsResponse(in);
                 break;
 
             default:
@@ -51,22 +65,22 @@ public class ProxyMessageListener implements PluginMessageListener {
         }
     }
 
-    private void handleInitStatus(ByteArrayDataInput in) {
+    private void initializePlayer(ByteArrayDataInput in) {
 
         UUID uuid = UUID.fromString(in.readUTF());
-        boolean initialized = in.readBoolean();
-        long totalPlaytime = in.readLong();
+        long totalPlaytime = in.readLong(); // TODO, not needed, only for log
+        int rankIndex = in.readInt();
 
         Player player = Bukkit.getPlayer(uuid);
         if (player == null) return;
 
-        if (!initialized) {
-            initializationManager.initializePlayer(player, totalPlaytime);
-        } else {
-            plugin.getLogger().info(player.getName() + " is already initialized, updating playtime.");
-            proxyMessenger.updatePlaytime(player);
-            // initializationManager.handleReturningPlayer(player);
-        }
+        //initializationManager.initializePlayer(player, totalPlaytime, rankIndex);
+
+        plugin.getLogger().info(player.getName() + " initialized at rank " + rankIndex + ", for total playtime: " + totalPlaytime);
+        rankManager.assignRank(player, rankIndex);
+        String rankLine = TextFormatter.getRankPrintLine(rankManager, rankIndex);
+        if (rankIndex != -1) { player.sendMessage("§6Welcome back to the server, §b" + player.getName() + "§6! You have been promoted to " + rankLine + " §6based on your previous playtime."); }
+        proxyMessenger.playerInitialized(player, rankIndex);
     }
 
     private void handlePromotionResult(ByteArrayDataInput in) {
@@ -74,6 +88,7 @@ public class ProxyMessageListener implements PluginMessageListener {
         UUID uuid = UUID.fromString(in.readUTF());
         boolean promoted = in.readBoolean();
         int rankIndex = in.readInt();
+        String track = in.readUTF();
 
         if (!promoted) {return;}
 
@@ -81,12 +96,62 @@ public class ProxyMessageListener implements PluginMessageListener {
 
         if (player == null) {return;}
 
-        rankManager.promoteRank(player, rankIndex);
+        rankManager.promoteRank(player, rankIndex, track);
 
         // TODO: Enable/disable global broadcast
         String rankLine = TextFormatter.getRankPrintLine(rankManager, rankIndex);
         Bukkit.broadcastMessage("§b"+ player.getName() + " §6has achieved " + rankLine + " §6rank!");
 
         proxyMessenger.playerPromoted(player, rankIndex);
+    }
+
+    public void handleRankDataResponse(ByteArrayDataInput in) {
+
+        int count = in.readInt();
+
+        System.out.println("TEMP: Received " + count + " ranks");
+
+        rankManager.clearRanks();
+
+        for (int i = 0; i < count; i++) {
+
+            String name = in.readUTF();
+            int index = in.readInt();
+            long requiredMinutes = in.readLong();
+            int rewardCount = in.readInt();   List<String> rewards = new ArrayList<>();   for (int j = 0; j < rewardCount; j++) {rewards.add(in.readUTF());}
+            String icon = in.readUTF();
+            String color = in.readUTF();
+
+            rankManager.addRank(new RankMilestone(name, index, requiredMinutes, rewards, icon, color));
+        }
+
+        rankManager.setLoaded(true);
+
+        for (UUID uuid : rankManager.getWaitingForRankData()) {
+
+            Player player = Bukkit.getPlayer(uuid);
+
+            if (player != null) {
+                proxyMessenger.playerJoin(player);
+            }
+        }
+        rankManager.getWaitingForRankData().clear();
+
+        for (RankMilestone rank : rankManager.getMilestones()) {plugin.getLogger().info("TEMP:" + rank.getRankName() + " rewards: " + rank.getRewards());}
+    }
+
+    public void handlePlayerStatsResponse(ByteArrayDataInput in) {
+
+        UUID uuid = UUID.fromString(in.readUTF());
+
+        long totalMinutes = in.readLong();
+        int rankIndex = in.readInt();
+        long firstJoin = in.readLong();
+        int joinCount = in.readInt();
+
+        Player player = Bukkit.getPlayer(uuid);
+        if (player == null) return;
+
+        playtimeCommand.displayStats(player, totalMinutes, rankIndex, firstJoin, joinCount);
     }
 }

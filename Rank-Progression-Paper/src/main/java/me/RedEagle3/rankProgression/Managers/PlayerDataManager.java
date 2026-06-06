@@ -79,7 +79,7 @@ public class PlayerDataManager {
         int correctIndex = 0;
 
         for (RankMilestone milestone : milestones) {
-            if (playtimeMillis >= milestone.getRequiredTime()) {
+            if (playtimeMillis >= milestone.getRequiredMinutes()) {
                 correctIndex = milestone.getIndex();
             } else {
                 break;
@@ -104,15 +104,5 @@ public class PlayerDataManager {
                 .stream()
                 .map(UUID::fromString)
                 .collect(java.util.stream.Collectors.toSet());
-    }
-
-    private final Set<UUID> seen = new HashSet<>();
-
-    public boolean hasSeenPlayer(UUID uuid) {
-        return seen.contains(uuid);
-    }
-
-    public void markSeen(UUID uuid) {
-        seen.add(uuid);
     }
 }

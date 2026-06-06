@@ -125,6 +125,32 @@ public class PlaytimeDataManager {
         return players;
     }
 
+    public void setFirstJoin(UUID uuid, long firstJoin) {
+
+        try {playerNode(uuid).node("first-join").set(firstJoin);
+            save();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public long getFirstJoin(UUID uuid) {
+        return root.node("players", uuid.toString(), "first-join").getLong(0L);
+    }
+
+    public void setJoinCount(UUID uuid, int joinCount) {
+
+        try {playerNode(uuid).node("join-count").set(joinCount);
+            save();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public int getJoinCount(UUID uuid) {
+        return root.node("players", uuid.toString(), "join-count").getInt(0);
+    }
+
     public boolean hasZenith(UUID uuid) {
         return playerNode(uuid).node("zenith").getBoolean(false);
     }

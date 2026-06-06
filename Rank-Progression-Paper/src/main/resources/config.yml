@@ -1,97 +1,17 @@
 # =========================================
-# Rank Progression Configuration
+# Rank Progression Configuration Paper v1.0
 # =========================================
 
-server-name: test-server
+# The name for the paper server
+server-name: server
 
-# How often to check for promotions
-# (in minutes)
-check-interval: 5
+# How often to update playtime and check for promotions (in minutes)
+check-interval: 1
 
-# LuckPerms track name
-track-name: "rank_progression"
+# Allow promotions in server?
+# If set to false, playtime is still tracked but players must connect to another server to get promoted (NOT IMPLEMENTED)
+allow-promotions: true
 
-# Broadcast promotions to the whole server
+# Broadcast promotions to the whole server?
+# I set to false, it will only send to the player directly
 broadcast-promotions: true
-
-# Rank milestones
-ranks:
-  coal:
-    requirement: 1h
-    reward: "Coming soon..."
-    icon: "●"
-    color: "&0"
-  iron:
-    requirement: 3h
-    reward: "Coming soon..."
-    icon: "▲"
-    color: "&8"
-  quartz:
-    requirement: 5h
-    reward: "Coming soon..."
-    icon: "■"
-    color: "&f"
-  copper:
-    requirement: 12h
-    reward: "Coming soon..."
-    icon: "⬟"
-    color: "&6"
-  gold:
-    requirement: 24h
-    reward: "Coming soon..."
-    icon: "⬣"
-    color: "&e"
-  lapis:
-    requirement: 48h
-    reward: "Coming soon..."
-    icon: "✿"
-    color: "&9"
-  redstone:
-    requirement: 96h
-    reward: "Coming soon..."
-    icon: "⚡"
-    color: "&c"
-  amethyst:
-    requirement: 150h
-    reward: "Coming soon..."
-    icon: "◆"
-    color: "&d"
-  emerald:
-    requirement: 250h
-    reward: "Coming soon..."
-    icon: "♣"
-    color: "&a"
-  diamond:
-    requirement: 400h
-    reward: "Coming soon..."
-    icon: "♦"
-    color: "&b"
-  netherite:
-    requirement: 650h
-    reward: "Coming soon..."
-    icon: "⌘"
-    color: "&4"
-  echo:
-    requirement: 1000h
-    reward: "Coming soon..."
-    icon: "∞"
-    color: "&1"
-  ender:
-    requirement: 1500h
-    reward: "Coming soon..."
-    icon: "❇"
-    color: "&5"
-  astral:
-    requirement: 2500h
-    reward: "Coming soon..."
-    icon: "✳"
-    color: "&3"
-  zenith:
-    requirement: 10000h
-    reward: "Coming soon..."
-    icon: "☠"
-    color: "&4"
-
-messages:
-  promoted: "&aYou have ranked up to &e%rank%&a!"
-  broadcast: "&e%player% &ahas ranked up to &e%rank%&a!"

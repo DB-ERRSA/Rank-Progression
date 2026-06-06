@@ -52,7 +52,7 @@ public class ProgressionGUI {
 
             RankMilestone milestone = milestones.get(i);
 
-            long required = milestone.getRequiredTime();
+            long required = milestone.getRequiredMinutes();
             long current = playtimeManager.getPlaytimeMillis(player.getUniqueId());
 
             boolean achieved = current >= required;
@@ -69,7 +69,7 @@ public class ProgressionGUI {
 
             String rankColor = color(milestone.getColor());
             String icon = milestone.getIcon();
-            String reward = milestone.getReward();
+            List<String> reward = milestone.getRewards();
 
             int progress = getProgress(current, required);
 
@@ -93,7 +93,7 @@ public class ProgressionGUI {
             lore.add("§fProgress: §b" + progress + "%");
             lore.add("");
             lore.add("§fRank icon: §7[" + rankColor + icon + "§7]");
-            lore.add("§fReward: §7" + reward);
+            lore.add("§fReward: §7" + reward.getFirst()); // TODO: display a list
             lore.add("");
 
             if (achieved) {

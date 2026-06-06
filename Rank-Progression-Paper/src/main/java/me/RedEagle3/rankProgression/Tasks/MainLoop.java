@@ -19,6 +19,7 @@ public class MainLoop extends BukkitRunnable {
         for (Player player : Bukkit.getOnlinePlayers()) {
             proxyMessenger.updatePlaytime(player);
             proxyMessenger.checkPromotion(player);
+            //proxyMessenger.checkZenith(player); TODO: Implement
         }
     }
 }
