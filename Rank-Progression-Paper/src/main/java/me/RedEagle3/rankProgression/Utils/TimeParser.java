@@ -9,35 +9,41 @@ public class TimeParser {
     private static final Pattern TIME_PATTERN =
             Pattern.compile("(\\d+)([smhd])");
 
-    public static long parseToMillis(String input) {
+    public static long parseToMinutes(String input) {
+
         if (input == null || input.isEmpty()) {
             return 0;
         }
 
-        long totalMillis = 0;
+        long totalMinutes = 0;
 
         Matcher matcher = TIME_PATTERN.matcher(input.toLowerCase());
 
         while (matcher.find()) {
+
             int value = Integer.parseInt(matcher.group(1));
             String unit = matcher.group(2);
 
             switch (unit) {
+
                 case "s":
-                    totalMillis += value * 1000L;
+                    totalMinutes += value / 60L;
                     break;
+
                 case "m":
-                    totalMillis += value * 60_000L;
+                    totalMinutes += value;
                     break;
+
                 case "h":
-                    totalMillis += value * 3_600_000L;
+                    totalMinutes += value * 60L;
                     break;
+
                 case "d":
-                    totalMillis += value * 86_400_000L;
+                    totalMinutes += value * 1440L;
                     break;
             }
         }
 
-        return totalMillis;
+        return totalMinutes;
     }
 }

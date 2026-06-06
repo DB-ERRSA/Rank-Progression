@@ -63,7 +63,7 @@ public class SyncRankProgressionCommand implements CommandExecutor {
                     int correctIndex = 0;
 
                     for (RankMilestone milestone : milestones) {
-                        if (playtime >= milestone.getRequiredMillis()) {
+                        if (playtime >= milestone.getRequiredTime()) {
                             correctIndex = milestone.getIndex();
                         } else {
                             break;

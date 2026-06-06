@@ -52,7 +52,7 @@ public class ProgressionGUI {
 
             RankMilestone milestone = milestones.get(i);
 
-            long required = milestone.getRequiredMillis();
+            long required = milestone.getRequiredTime();
             long current = playtimeManager.getPlaytimeMillis(player.getUniqueId());
 
             boolean achieved = current >= required;

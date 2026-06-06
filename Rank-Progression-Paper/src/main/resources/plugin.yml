@@ -19,5 +19,3 @@ commands:
   saveplaytimedata:
     description: Exports playtime data for analytics
     permission: rankprogression.saveplaytimedata
-  ptest:
-    description: Test proxy messaging

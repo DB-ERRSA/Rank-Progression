@@ -79,7 +79,7 @@ public class PlayerDataManager {
         int correctIndex = 0;
 
         for (RankMilestone milestone : milestones) {
-            if (playtimeMillis >= milestone.getRequiredMillis()) {
+            if (playtimeMillis >= milestone.getRequiredTime()) {
                 correctIndex = milestone.getIndex();
             } else {
                 break;

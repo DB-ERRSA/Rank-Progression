@@ -13,7 +13,7 @@ import me.RedEagle3.rankProgression.Managers.LeaderboardManager;
 import java.util.List;
 import java.util.UUID;
 
-public class PromotionCheckTask extends BukkitRunnable {
+public class  PromotionCheckTask extends BukkitRunnable {
 
     private final JavaPlugin plugin;
     private final PlaytimeManager playtimeManager;
@@ -61,7 +61,7 @@ public class PromotionCheckTask extends BukkitRunnable {
                 int correctIndex = 0;
 
                 for (RankMilestone m : milestones) {
-                    if (playtime >= m.getRequiredMillis()) {
+                    if (playtime >= m.getRequiredTime()) {
                         correctIndex = m.getIndex();
                     } else {
                         break;
@@ -96,7 +96,7 @@ public class PromotionCheckTask extends BukkitRunnable {
 
             RankMilestone next = milestones.get(nextIndex);
 
-            if (playtime >= next.getRequiredMillis()) {
+            if (playtime >= next.getRequiredTime()) {
 
                 promotePlayer(player, next);
 

@@ -2,6 +2,8 @@
 # Rank Progression Configuration
 # =========================================
 
+server-name: test-server
+
 # How often to check for promotions
 # (in minutes)
 check-interval: 5

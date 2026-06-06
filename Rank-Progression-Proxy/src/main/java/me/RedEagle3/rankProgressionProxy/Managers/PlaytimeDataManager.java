@@ -1,38 +1,154 @@
 package me.RedEagle3.rankProgressionProxy.Managers;
 
-import java.io.File;
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.serialize.SerializationException;
+import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
+
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 public class PlaytimeDataManager {
 
-    private final File file;
-    private final YamlConfiguration config;
-
-    public PlaytimeDataManager(Path dataDirectory) {
-
-        file = dataDirectory.resolve("playtime-data.yml").toFile();
-
-        if (!file.exists()) {
-            try {
-                file.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        config = YamlConfiguration.loadConfiguration(file);
+    private final Path file;
+    private final YamlConfigurationLoader loader;
+    private ConfigurationNode root;
+    private ConfigurationNode playerNode(UUID uuid) {
+        return root.node("players", uuid.toString());
     }
 
-    public void save() {
+    public PlaytimeDataManager(Path dataFolder) throws IOException {
+
+        Files.createDirectories(dataFolder);
+        file = dataFolder.resolve("playtime-data.yml");
+
+        loader = YamlConfigurationLoader.builder().path(file).build();
+
+        if (Files.notExists(file)) {
+            Files.createFile(file);
+        }
+
+        root = loader.load();
+
+        save();
+    }
+
+    public void load() throws IOException {
+        root = loader.load();
+    }
+
+    public void save() throws IOException {
+        loader.save(root);
+    }
+
+    public String getUsername(UUID uuid) {
+        return playerNode(uuid).node("username").getString("Unknown");
+    }
+
+    public void setUsername(UUID uuid, String username) {
+
+        safeSet(playerNode(uuid).node("username"), username);
+
         try {
-            config.save(file);
+            save();
         } catch (IOException e) {
+            throw new RuntimeException("Failed to save player data", e);
+        }
+    }
+
+    public boolean isPlayerInitialized(UUID uuid) {
+        return playerNode(uuid).node("initialized").getBoolean(false);
+    }
+
+    public void setPlayerInitialized(UUID uuid, boolean value) {
+        try {
+            playerNode(uuid).node("initialized").set(value);
+            save();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public YamlConfiguration getConfig() {
-        return config;
+    public int getRankIndex(UUID uuid) {
+        return playerNode(uuid).node("rank-index").getInt(0);
+    }
+
+    public void setRankIndex(UUID uuid, int index) {
+        try {playerNode(uuid).node("rank-index").set(index);
+            save();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public long getTotalPlaytime(UUID uuid) {
+        return playerNode(uuid).node("total-playtime").getLong(0);
+    }
+
+    public long getServerPlaytime(UUID uuid, String server) {
+        return playerNode(uuid).node("servers", server).getLong(0);
+    }
+
+    public void updateServerPlaytime(UUID uuid, String server, long minutes) {
+
+        ConfigurationNode player = playerNode(uuid);
+
+        // update per-server
+        safeSet(player.node("servers", server), minutes);
+
+        long total = 0;
+
+        for (ConfigurationNode child : player.node("servers").childrenMap().values()) {
+            total += child.getLong(0);
+        }
+
+        safeSet(player.node("total-playtime"), total);
+
+        try {
+            save();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save playtime data", e);
+        }
+    }
+
+    public Set<UUID> getAllPlayers() {
+
+        Set<UUID> players = new HashSet<>();
+
+        for (Object key : playersNode().childrenMap().keySet()) {
+            players.add(UUID.fromString(key.toString()));
+        }
+
+        return players;
+    }
+
+    public boolean hasZenith(UUID uuid) {
+        return playerNode(uuid).node("zenith").getBoolean(false);
+    }
+
+    public void setZenith(UUID uuid, boolean value) {
+
+        safeSet(playerNode(uuid).node("zenith"), value);
+
+        try {
+            save();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save player data", e);
+        }
+    }
+
+    private void safeSet(ConfigurationNode node, Object value) {
+        try {
+            node.set(value);
+        } catch (SerializationException e) {
+            throw new RuntimeException("Failed to serialize config value: " + value, e);
+        }
+    }
+
+    private ConfigurationNode playersNode() {
+        return root.node("players");
     }
 }

@@ -1,16 +1,18 @@
 package me.RedEagle3.rankProgression;
 
 
-import me.RedEagle3.rankProgression.Commands.*;
+import me.RedEagle3.rankProgression.Commands.PlaytimeCommand;
+import me.RedEagle3.rankProgression.Commands.ProgressionCommand;
+import me.RedEagle3.rankProgression.Commands.SavePlaytimeDataCommand;
+import me.RedEagle3.rankProgression.Commands.SyncRankProgressionCommand;
 import me.RedEagle3.rankProgression.GUI.LeaderboardGUI;
 import me.RedEagle3.rankProgression.GUI.ProgressionGUI;
 import me.RedEagle3.rankProgression.Listeners.GUIListener;
-import me.RedEagle3.rankProgression.Listeners.TestMessageListener;
-import me.RedEagle3.rankProgression.Managers.LeaderboardManager;
-import me.RedEagle3.rankProgression.Managers.PlayerDataManager;
-import me.RedEagle3.rankProgression.Managers.PlaytimeManager;
-import me.RedEagle3.rankProgression.Managers.RankManager;
-import me.RedEagle3.rankProgression.Tasks.PromotionCheckTask;
+import me.RedEagle3.rankProgression.Listeners.PlayerJoinListener;
+import me.RedEagle3.rankProgression.Managers.*;
+import me.RedEagle3.rankProgression.Messaging.ProxyMessageListener;
+import me.RedEagle3.rankProgression.Messaging.ProxyMessenger;
+import me.RedEagle3.rankProgression.Tasks.MainLoop;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -31,6 +33,8 @@ public class RankProgression extends JavaPlugin {
         PlayerDataManager playerDataManager = new PlayerDataManager(this);
         ProgressionGUI progressionGUI = new ProgressionGUI(this, rankManager, playerDataManager, playtimeManager);
         SavePlaytimeDataCommand savePlaytimeDataCommand = new SavePlaytimeDataCommand(this, playtimeManager, playerDataManager);
+        ProxyMessenger proxyMessenger = new ProxyMessenger(this, playtimeManager);
+        PlayerInitializationManager initializationManager = new PlayerInitializationManager(this, rankManager, proxyMessenger);
 
         // === LEADERBOARD SYSTEM ===
         LeaderboardManager leaderboardManager = new LeaderboardManager(this);
@@ -43,25 +47,26 @@ public class RankProgression extends JavaPlugin {
         getCommand("saveplaytimedata").setExecutor(savePlaytimeDataCommand);
 
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerJoinListener(this, proxyMessenger), this);
+
+        getServer().getMessenger().registerIncomingPluginChannel(this, "rankprogression:main", new ProxyMessageListener(this, proxyMessenger, initializationManager, rankManager));
+        Bukkit.getMessenger().registerOutgoingPluginChannel(this, "rankprogression:main");
+
 
         // === STARTUP SYNC ===
         syncOnlinePlayers();
 
-        // === TASK ===
-        long interval = getConfig().getLong("check-interval", 5);
+        // === OLD TASKS ===
+        //long interval = getConfig().getLong("check-interval", 5);
+//        new PromotionCheckTask(this, playtimeManager, rankManager, playerDataManager, leaderboardManager
+//        ).runTaskTimer(this, 20L * 60 * interval, 20L * 60 * interval);
 
-        new PromotionCheckTask(this, playtimeManager, rankManager, playerDataManager, leaderboardManager
-        ).runTaskTimer(this, 20L * 60 * interval, 20L * 60 * interval);
+        // === TASKS ===
+        long interval = getConfig().getLong("check-interval", 5);
+        new MainLoop(proxyMessenger).runTaskTimer(this, 20L * 60 * interval, 20L * 60 * interval);
 
         // initial leaderboard build
         leaderboardManager.rebuild();
-
-        // TODO TEMP, DELETE LATER
-        // TODO TEMP, DELETE LATER
-        getCommand("ptest").setExecutor(new ProxyTestCommand(this));
-        Bukkit.getMessenger().registerOutgoingPluginChannel(this, "rankprogression:main");
-        Bukkit.getMessenger().registerIncomingPluginChannel(this, "rankprogression:main", (ch, player, msg) -> {});
-        Bukkit.getPluginManager().registerEvents(new TestMessageListener(this), this);
 
         getLogger().info("RankProgression enabled successfully!");
     }

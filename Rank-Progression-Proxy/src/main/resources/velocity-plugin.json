@@ -1,0 +1,6 @@
+{
+  "id": "rank-progression-proxy",
+  "name": "Rank-Progression-Proxy",
+  "version": "1.0",
+  "main": "me.RedEagle3.rankProgressionProxy.RankProgressionProxy"
+}
