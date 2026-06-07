@@ -49,7 +49,7 @@ public class PlaytimeCommand implements CommandExecutor {
             }
         }
 
-        proxyMessenger.requestPlayerStats(player);
+        proxyMessenger.requestPlayerStats(player, "PLAYTIME_COMMAND");
 
         return true;
     }

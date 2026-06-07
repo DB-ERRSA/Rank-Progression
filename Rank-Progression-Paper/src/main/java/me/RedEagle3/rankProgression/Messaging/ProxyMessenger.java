@@ -7,6 +7,8 @@ import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.UUID;
+
 public class ProxyMessenger {
 
     private static final String CHANNEL = "rankprogression:main";
@@ -101,13 +103,39 @@ public class ProxyMessenger {
         player.sendPluginMessage(plugin, CHANNEL, out.toByteArray());
     }
 
-    public void requestPlayerStats(Player player) {
+    public void requestPlayerStats(Player player, String reason) {
 
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
 
         out.writeUTF("REQUEST_PLAYER_STATS");
         out.writeUTF(player.getUniqueId().toString());
+        out.writeUTF(reason);
 
         player.sendPluginMessage(plugin, CHANNEL, out.toByteArray());
+    }
+
+    public void syncOfflinePlayer(Player admin, UUID uuid, String username, long playtimeMinutes, String serverName, long firstJoin, int joinCount) {
+
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+
+        out.writeUTF("OFFLINE_SYNC_PLAYER_DATA");
+        out.writeUTF(uuid.toString());
+        out.writeUTF(username == null ? "Unknown" : username);
+        out.writeLong(playtimeMinutes);
+        out.writeUTF(serverName);
+        out.writeLong(firstJoin);
+        out.writeInt(joinCount);
+
+        admin.sendPluginMessage(plugin, CHANNEL, out.toByteArray());
+    }
+
+    public void requestPlaytimeExport(Player admin) {
+
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+
+        out.writeUTF("REQUEST_PLAYTIME_EXPORT");
+        out.writeUTF(admin.getUniqueId().toString());
+
+        admin.sendPluginMessage(plugin, CHANNEL, out.toByteArray());
     }
 }

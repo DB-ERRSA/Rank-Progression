@@ -16,11 +16,14 @@ public class PlaytimeDataManager {
     private final Path file;
     private final YamlConfigurationLoader loader;
     private ConfigurationNode root;
+    private final Path dataFolder;
     private ConfigurationNode playerNode(UUID uuid) {
         return root.node("players", uuid.toString());
     }
 
     public PlaytimeDataManager(Path dataFolder) throws IOException {
+
+        this.dataFolder = dataFolder;
 
         Files.createDirectories(dataFolder);
         file = dataFolder.resolve("playtime-data.yml");
@@ -34,6 +37,10 @@ public class PlaytimeDataManager {
         root = loader.load();
 
         save();
+    }
+
+    public Path getDataFolder() {
+        return dataFolder;
     }
 
     public void load() throws IOException {
@@ -118,8 +125,13 @@ public class PlaytimeDataManager {
 
         Set<UUID> players = new HashSet<>();
 
-        for (Object key : playersNode().childrenMap().keySet()) {
-            players.add(UUID.fromString(key.toString()));
+        ConfigurationNode playersNode = root.node("players");
+
+        for (Object key : playersNode.childrenMap().keySet()) {
+
+            try {
+                players.add(UUID.fromString(key.toString()));
+            } catch (IllegalArgumentException ignored) {}
         }
 
         return players;

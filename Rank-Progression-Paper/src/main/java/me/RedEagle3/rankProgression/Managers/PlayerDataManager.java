@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class PlayerDataManager {
+public class PlayerDataManager { // TODO: Delete entire class? (It's from the old paper version?)
 
     private final JavaPlugin plugin;
 

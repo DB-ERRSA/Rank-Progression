@@ -14,8 +14,8 @@ commands:
   progression:
     description: Shows your rank progression
   syncrankprogression:
-    description: Syncs all player rank progression data
+    description: Syncs all offline player's data into the proxy YML
     permission: rankprogression.syncrankprogression
-  saveplaytimedata:
-    description: Exports playtime data for analytics
-    permission: rankprogression.saveplaytimedata
+  exportplaytimedata:
+    description: Exports playtime data as an excel sheet for analytics
+    permission: rankprogression.exportplaytimedata

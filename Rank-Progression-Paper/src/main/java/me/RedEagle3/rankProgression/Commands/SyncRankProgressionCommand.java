@@ -1,93 +1,63 @@
 package me.RedEagle3.rankProgression.Commands;
 
-import me.RedEagle3.rankProgression.Managers.LeaderboardManager;
-import me.RedEagle3.rankProgression.Managers.PlayerDataManager;
-import me.RedEagle3.rankProgression.Managers.PlaytimeManager;
-import me.RedEagle3.rankProgression.Managers.RankManager;
-import me.RedEagle3.rankProgression.Models.RankMilestone;
+import me.RedEagle3.rankProgression.Messaging.ProxyMessenger;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Statistic;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class SyncRankProgressionCommand implements CommandExecutor {
 
     private final JavaPlugin plugin;
-    private final PlaytimeManager playtimeManager;
-    private final RankManager rankManager;
-    private final PlayerDataManager playerDataManager;
-    private final LeaderboardManager leaderboardManager;
+    private final ProxyMessenger proxyMessenger;
 
-    public SyncRankProgressionCommand(JavaPlugin plugin,
-                                      PlaytimeManager playtimeManager,
-                                      RankManager rankManager,
-                                      PlayerDataManager playerDataManager,
-                                      LeaderboardManager leaderboardManager) {
-
+    public SyncRankProgressionCommand(JavaPlugin plugin, ProxyMessenger proxyMessenger) {
         this.plugin = plugin;
-        this.playtimeManager = playtimeManager;
-        this.rankManager = rankManager;
-        this.playerDataManager = playerDataManager;
-        this.leaderboardManager = leaderboardManager;
+        this.proxyMessenger = proxyMessenger;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-        if (!sender.hasPermission("rankprogress.admin")) {
-            sender.sendMessage("§cYou do not have permission.");
+        if (!(sender instanceof Player admin)) {
+            sender.sendMessage("This command can only be used in-game.");
             return true;
         }
 
-        sender.sendMessage("§eStarting full rank progression sync...");
+        if (!sender.hasPermission("rankprogression.syncrankprogression")) {
+            sender.sendMessage("§cYou do not have permission to use this command.");
+            return true;
+        }
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
+        sender.sendMessage("§eStarting offline player sync...");
 
-                RankMilestone[] milestones = rankManager.getMilestones().toArray(new RankMilestone[0]);
+        OfflinePlayer[] players = Bukkit.getOfflinePlayers();
 
-                OfflinePlayer[] players = Bukkit.getOfflinePlayers();
+        int synced = 0;
 
-                int updated = 0;
+        String serverName = plugin.getConfig().getString("server-name");
+        if (serverName == null || serverName.isBlank()) {serverName = "unknown";}
 
-                for (OfflinePlayer player : players) {
+        for (OfflinePlayer player : players) {
 
-                    if (player.getUniqueId() == null) continue;
-
-                    long playtime = player.getStatistic(org.bukkit.Statistic.PLAY_ONE_MINUTE) * 50L;
-
-                    int correctIndex = 0;
-
-                    for (RankMilestone milestone : milestones) {
-                        if (playtime >= milestone.getRequiredMinutes()) {
-                            correctIndex = milestone.getIndex();
-                        } else {
-                            break;
-                        }
-                    }
-
-                    int currentIndex = playerDataManager.getRankIndex(player.getUniqueId());
-
-                    if (correctIndex > currentIndex) {
-                        playerDataManager.setRankIndex(player.getUniqueId(), correctIndex);
-                        updated++;
-                    }
-                }
-
-                playerDataManager.save();
-
-                Bukkit.getScheduler().runTask(plugin, () -> {
-                    leaderboardManager.rebuild();
-                    sender.sendMessage("§aLeaderboard updated successfully.");
-                });
-
-                sender.sendMessage("§aSync complete! Updated players: §e" + updated);
+            if (player.isOnline()) {
+                continue;
             }
-        }.runTaskAsynchronously(plugin);
+
+            long playtimeMinutes = player.getStatistic(Statistic.PLAY_ONE_MINUTE) / 20 / 60;
+            long firstJoin = player.getFirstPlayed();
+            int joinCount = player.getStatistic(Statistic.LEAVE_GAME) + 1;
+
+            proxyMessenger.syncOfflinePlayer(admin, player.getUniqueId(), player.getName(), playtimeMinutes, serverName, firstJoin, joinCount);
+
+            synced++;
+        }
+
+        sender.sendMessage("§aSync complete! Sent §e" + synced + "§a players.");
 
         return true;
     }

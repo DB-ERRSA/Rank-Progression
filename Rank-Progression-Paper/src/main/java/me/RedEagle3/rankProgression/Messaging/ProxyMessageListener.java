@@ -3,7 +3,7 @@ package me.RedEagle3.rankProgression.Messaging;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import me.RedEagle3.rankProgression.Commands.PlaytimeCommand;
-import me.RedEagle3.rankProgression.Managers.PlayerInitializationManager;
+import me.RedEagle3.rankProgression.Commands.ProgressionCommand;
 import me.RedEagle3.rankProgression.Managers.RankManager;
 import me.RedEagle3.rankProgression.Models.RankMilestone;
 import me.RedEagle3.rankProgression.Utils.TextFormatter;
@@ -20,16 +20,16 @@ public class ProxyMessageListener implements PluginMessageListener {
 
     private final JavaPlugin plugin;
     private final ProxyMessenger proxyMessenger;
-    private final PlayerInitializationManager initializationManager;
     private final RankManager rankManager;
     private final PlaytimeCommand playtimeCommand;
+    private final ProgressionCommand progressionCommand;
 
-    public ProxyMessageListener(JavaPlugin plugin, ProxyMessenger proxyMessenger, PlayerInitializationManager initializationManager, RankManager rankManager, PlaytimeCommand playtimeCommand) {
+    public ProxyMessageListener(JavaPlugin plugin, ProxyMessenger proxyMessenger, RankManager rankManager, PlaytimeCommand playtimeCommand, ProgressionCommand progressionCommand) {
         this.plugin = plugin;
         this.proxyMessenger = proxyMessenger;
-        this.initializationManager = initializationManager;
         this.rankManager = rankManager;
         this.playtimeCommand = playtimeCommand;
+        this.progressionCommand = progressionCommand;
     }
 
     @Override
@@ -59,6 +59,10 @@ public class ProxyMessageListener implements PluginMessageListener {
                 handlePlayerStatsResponse(in);
                 break;
 
+            case "PLAYTIME_EXPORT_COMPLETE":
+                handlePlaytimeExportComplete(in);
+                break;
+
             default:
                 plugin.getLogger().info("Unknown subchannel: " + subChannel);
                 break;
@@ -73,8 +77,6 @@ public class ProxyMessageListener implements PluginMessageListener {
 
         Player player = Bukkit.getPlayer(uuid);
         if (player == null) return;
-
-        //initializationManager.initializePlayer(player, totalPlaytime, rankIndex);
 
         plugin.getLogger().info(player.getName() + " initialized at rank " + rankIndex + ", for total playtime: " + totalPlaytime);
         rankManager.assignRank(player, rankIndex);
@@ -137,7 +139,7 @@ public class ProxyMessageListener implements PluginMessageListener {
         }
         rankManager.getWaitingForRankData().clear();
 
-        for (RankMilestone rank : rankManager.getMilestones()) {plugin.getLogger().info("TEMP:" + rank.getRankName() + " rewards: " + rank.getRewards());}
+        // for (RankMilestone rank : rankManager.getMilestones()) {plugin.getLogger().info("TEMP:" + rank.getRankName() + " rewards: " + rank.getRewards());}
     }
 
     public void handlePlayerStatsResponse(ByteArrayDataInput in) {
@@ -148,10 +150,30 @@ public class ProxyMessageListener implements PluginMessageListener {
         int rankIndex = in.readInt();
         long firstJoin = in.readLong();
         int joinCount = in.readInt();
+        String reason = in.readUTF();
 
         Player player = Bukkit.getPlayer(uuid);
         if (player == null) return;
 
-        playtimeCommand.displayStats(player, totalMinutes, rankIndex, firstJoin, joinCount);
+        if (reason.equals("PLAYTIME_COMMAND")) {
+            playtimeCommand.displayStats(player, totalMinutes, rankIndex, firstJoin, joinCount);
+        } else if (reason.equals("PROGRESSION_COMMAND")) {
+            progressionCommand.openProgression(player, totalMinutes, rankIndex);
+        } else {
+            System.out.println("ERROR: Unknown stats request type!");
+            //logger.warn(Unknown stats request type!) // TODO: change above to logger
+        }
+    }
+
+    private void handlePlaytimeExportComplete(ByteArrayDataInput in) {
+
+        UUID uuid = UUID.fromString(in.readUTF());
+        Player admin = Bukkit.getPlayer(uuid);
+        String fileName = in.readUTF();
+        int playerCount = in.readInt();
+
+        if (!(admin == null)) {
+            admin.sendMessage("§aExport complete! Saved §e" + playerCount + " §aplayers to §e" + fileName);
+        }
     }
 }

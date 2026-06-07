@@ -1,9 +1,8 @@
 package me.RedEagle3.rankProgression.GUI;
 
-import me.RedEagle3.rankProgression.Managers.PlayerDataManager;
-import me.RedEagle3.rankProgression.Managers.PlaytimeManager;
 import me.RedEagle3.rankProgression.Managers.RankManager;
 import me.RedEagle3.rankProgression.Models.RankMilestone;
+import me.RedEagle3.rankProgression.Utils.TextFormatter;
 import me.RedEagle3.rankProgression.Utils.TimeFormatter;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -11,36 +10,23 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ProgressionGUI {
 
-    private final JavaPlugin plugin;
     private final RankManager rankManager;
-    private final PlayerDataManager playerDataManager;
-    private final PlaytimeManager playtimeManager;
 
-    public ProgressionGUI(JavaPlugin plugin,
-                          RankManager rankManager,
-                          PlayerDataManager playerDataManager,
-                          PlaytimeManager playtimeManager) {
-
-        this.plugin = plugin;
+    public ProgressionGUI(RankManager rankManager) {
         this.rankManager = rankManager;
-        this.playerDataManager = playerDataManager;
-        this.playtimeManager = playtimeManager;
     }
 
-    public void open(Player player) {
+    public void open(Player player, long currentMinutesPT, int currentRankIndex) {
 
         Inventory inv = Bukkit.createInventory(null, 36, "§6Rank Progression");
 
         List<RankMilestone> milestones = rankManager.getMilestones();
-
-        int currentIndex = playerDataManager.getRankIndex(player.getUniqueId());
 
         // === MAIN RANK ITEMS ===
         int[] slots = {
@@ -53,34 +39,28 @@ public class ProgressionGUI {
             RankMilestone milestone = milestones.get(i);
 
             long required = milestone.getRequiredMinutes();
-            long current = playtimeManager.getPlaytimeMillis(player.getUniqueId());
+            boolean achieved = currentMinutesPT >= required;
 
-            boolean achieved = current >= required;
-
-            Material mat = getMaterialForRank(
-                    milestone.getRankName(),
-                    achieved
-            );
+            Material mat = getMaterialForRank(milestone.getRankName(), achieved);
 
             ItemStack item = new ItemStack(mat);
             ItemMeta meta = item.getItemMeta();
-
             List<String> lore = new ArrayList<>();
 
-            String rankColor = color(milestone.getColor());
+            String rankLine = "§7Unknown";
+            if (milestone.getIndex() >= 0 && milestone.getIndex() < rankManager.getMilestones().size()) {
+                rankLine = TextFormatter.getRankPrintLine(rankManager, milestone.getIndex());
+            }
+
             String icon = milestone.getIcon();
             List<String> reward = milestone.getRewards();
-
-            int progress = getProgress(current, required);
+            int progress = getProgress(currentMinutesPT, required);
 
             // TITLE
             if (achieved) {
-                meta.setDisplayName("§aAchieved! - " +
-                        "§7[" + rankColor + capitalize(milestone.getRankName()) + "§7] §aRank");
+                meta.setDisplayName("§aAchieved! - " + rankLine + " §aRank");
             } else {
-                meta.setDisplayName(
-                        "§7[" + rankColor + capitalize(milestone.getRankName()) + "§7] §fRank"
-                );
+                meta.setDisplayName(rankLine + " §fRank");
             }
 
             // LORE
@@ -92,8 +72,8 @@ public class ProgressionGUI {
             lore.add("");
             lore.add("§fProgress: §b" + progress + "%");
             lore.add("");
-            lore.add("§fRank icon: §7[" + rankColor + icon + "§7]");
-            lore.add("§fReward: §7" + reward.getFirst()); // TODO: display a list
+            lore.add("§fRank icon: §7[" + TextFormatter.color(rankManager.getRank(milestone.getIndex()).getColor()) + icon + "§7]");
+            if (!reward.isEmpty()) {lore.add("§fReward: §7" + reward.getFirst());}  // TODO: display a list
             lore.add("");
 
             if (achieved) {
@@ -108,8 +88,8 @@ public class ProgressionGUI {
             inv.setItem(slots[i], item);
         }
 
-        // === ZENITH SLOT ===
-        if (currentIndex >= milestones.size() - 1) {
+        // === ZENITH SLOT === // TODO: Test/Impliment
+        if (currentRankIndex >= milestones.size() - 1) {
 
             ItemStack zenith = new ItemStack(Material.WITHER_SKELETON_SKULL);
             ItemMeta meta = zenith.getItemMeta();
@@ -160,14 +140,5 @@ public class ProgressionGUI {
         double percent = (double) current / required * 100;
 
         return Math.min(100, (int) percent);
-    }
-
-    private String capitalize(String s) {
-        if (s == null || s.isEmpty()) return s;
-        return s.substring(0, 1).toUpperCase() + s.substring(1);
-    }
-
-    private String color(String text) {
-        return org.bukkit.ChatColor.translateAlternateColorCodes('&', text);
     }
 }

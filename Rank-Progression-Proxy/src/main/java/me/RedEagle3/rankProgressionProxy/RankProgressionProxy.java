@@ -53,7 +53,7 @@ public class RankProgressionProxy {
             logger.error("Failed to initialize RankProgressionProxy", e);
         }
 
-        server.getEventManager().register(this, new PluginMessageListener(playtimeDataManager, rankDataManager));
+        server.getEventManager().register(this, new PluginMessageListener(this, playtimeDataManager, rankDataManager));
 
         logger.info("RankProgressionProxy enabled!");
     }
