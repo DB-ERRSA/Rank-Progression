@@ -1,4 +1,4 @@
-package me.RedEagle3.rankProgression.Models;
+package me.RedEagle3.rankProgressionProxy.Models;
 
 import java.util.UUID;
 

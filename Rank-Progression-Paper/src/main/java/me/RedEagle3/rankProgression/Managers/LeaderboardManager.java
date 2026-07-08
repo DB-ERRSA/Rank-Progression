@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 public class LeaderboardManager {
 
-    private final JavaPlugin plugin;
+    private final JavaPlugin plugin; // TODO Old as well, probably can delete
 
     private List<LeaderboardEntry> leaderboard = new ArrayList<>();
 
@@ -27,14 +27,11 @@ public class LeaderboardManager {
 
             long playtime = player.getStatistic(Statistic.PLAY_ONE_MINUTE) * 50L;
 
-            list.add(new LeaderboardEntry(
-                    player.getUniqueId(),
-                    playtime
-            ));
+            //list.add(new LeaderboardEntry(player.getUniqueId(), player.getName(), playtime, 0));
         }
 
         leaderboard = list.stream()
-                .sorted((a, b) -> Long.compare(b.getPlaytime(), a.getPlaytime()))
+                .sorted((a, b) -> Long.compare(b.getTotalMinutes(), a.getTotalMinutes()))
                 .limit(27)
                 .collect(Collectors.toList());
     }

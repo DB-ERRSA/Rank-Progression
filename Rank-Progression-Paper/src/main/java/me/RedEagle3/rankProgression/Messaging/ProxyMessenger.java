@@ -114,7 +114,7 @@ public class ProxyMessenger {
         player.sendPluginMessage(plugin, CHANNEL, out.toByteArray());
     }
 
-    public void syncOfflinePlayer(Player admin, UUID uuid, String username, long playtimeMinutes, String serverName, long firstJoin, int joinCount) {
+    public void syncOfflinePlayer(Player admin, UUID uuid, String username, long playtimeMinutes, String serverName, long firstJoin, int joinCount, long lastOnline) {
 
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
 
@@ -125,6 +125,7 @@ public class ProxyMessenger {
         out.writeUTF(serverName);
         out.writeLong(firstJoin);
         out.writeInt(joinCount);
+        out.writeLong(lastOnline);
 
         admin.sendPluginMessage(plugin, CHANNEL, out.toByteArray());
     }
@@ -137,5 +138,15 @@ public class ProxyMessenger {
         out.writeUTF(admin.getUniqueId().toString());
 
         admin.sendPluginMessage(plugin, CHANNEL, out.toByteArray());
+    }
+
+    public void requestLeaderboard(Player player) {
+
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+
+        out.writeUTF("REQUEST_LEADERBOARD");
+        out.writeUTF(player.getUniqueId().toString());
+
+        player.sendPluginMessage(plugin, CHANNEL, out.toByteArray());
     }
 }

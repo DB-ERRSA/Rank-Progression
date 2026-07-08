@@ -51,8 +51,9 @@ public class SyncRankProgressionCommand implements CommandExecutor {
             long playtimeMinutes = player.getStatistic(Statistic.PLAY_ONE_MINUTE) / 20 / 60;
             long firstJoin = player.getFirstPlayed();
             int joinCount = player.getStatistic(Statistic.LEAVE_GAME) + 1;
+            long lastOnline = player.getLastLogin();
 
-            proxyMessenger.syncOfflinePlayer(admin, player.getUniqueId(), player.getName(), playtimeMinutes, serverName, firstJoin, joinCount);
+            proxyMessenger.syncOfflinePlayer(admin, player.getUniqueId(), player.getName(), playtimeMinutes, serverName, firstJoin, joinCount, lastOnline);
 
             synced++;
         }

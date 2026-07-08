@@ -5,10 +5,13 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.PluginMessageEvent;
+import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
+import me.RedEagle3.rankProgressionProxy.Managers.LeaderboardManager;
 import me.RedEagle3.rankProgressionProxy.Managers.PlaytimeDataManager;
 import me.RedEagle3.rankProgressionProxy.Managers.RankDataManager;
+import me.RedEagle3.rankProgressionProxy.Models.LeaderboardEntry;
 import me.RedEagle3.rankProgressionProxy.Models.RankData;
 import me.RedEagle3.rankProgressionProxy.RankProgressionProxy;
 
@@ -16,10 +19,7 @@ import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -29,11 +29,13 @@ public class PluginMessageListener {
     private static final MinecraftChannelIdentifier CHANNEL = MinecraftChannelIdentifier.from("rankprogression:main");
     private final PlaytimeDataManager playtimeDataManager;
     private final RankDataManager rankDataManager;
+    private final LeaderboardManager leaderboardManager;
 
-    public PluginMessageListener(RankProgressionProxy plugin, PlaytimeDataManager playtimeDataManager, RankDataManager rankDataManager) {
+    public PluginMessageListener(RankProgressionProxy plugin, PlaytimeDataManager playtimeDataManager, RankDataManager rankDataManager, LeaderboardManager leaderboardManager) {
         this.plugin = plugin;
         this.playtimeDataManager = playtimeDataManager;
         this.rankDataManager = rankDataManager;
+        this.leaderboardManager = leaderboardManager;
     }
 
     @Subscribe
@@ -83,6 +85,10 @@ public class PluginMessageListener {
 
             case "REQUEST_PLAYTIME_EXPORT":
                 handlePlaytimeExportRequest(in, event);
+                break;
+
+            case "REQUEST_LEADERBOARD":
+                handleLeaderboardRequest(in, event);
                 break;
 
             default:
@@ -234,6 +240,7 @@ public class PluginMessageListener {
         String serverName = in.readUTF();
         long firstJoin = in.readLong();
         int joinCount = in.readInt();
+        long lastOnline = in.readLong();
 
         // Skip players that have already joined since migration
         if (playtimeDataManager.isPlayerInitialized(uuid)) {
@@ -244,6 +251,7 @@ public class PluginMessageListener {
         playtimeDataManager.updateServerPlaytime(uuid, serverName, playtimeMinutes);
         playtimeDataManager.setFirstJoin(uuid, firstJoin);
         playtimeDataManager.setJoinCount(uuid, joinCount);
+        playtimeDataManager.setLastSeen(uuid, lastOnline);
 
         int rankIndex = rankDataManager.getRankIndexForPlaytime(playtimeMinutes);
 
@@ -308,5 +316,74 @@ public class PluginMessageListener {
                 e.printStackTrace();
             }
         });
+    }
+
+//    private void handleLeaderboardRequest(ByteArrayDataInput in, PluginMessageEvent event) {
+//
+//        UUID requester = UUID.fromString(in.readUTF());
+//
+//        List<LeaderboardEntry> leaderboard = leaderboardManager.getCache();
+//
+//        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+//
+//        out.writeUTF("LEADERBOARD_RESPONSE");
+//        out.writeUTF(requester.toString());
+//
+//        out.writeInt(leaderboard.size());
+//
+//        for (LeaderboardEntry entry : leaderboard) {
+//            out.writeUTF(entry.getUuid().toString());
+//            out.writeUTF(entry.getUsername());
+//            out.writeLong(entry.getTotalMinutes());
+//            out.writeInt(entry.getRankIndex());
+//            out.writeLong(entry.getFirstJoin());
+//            out.writeLong(entry.getLastSeen());
+//            out.writeInt(entry.getJoinCount());
+//            out.writeBoolean(entry.isOnline());
+//            out.writeUTF(entry.getServerName());
+//        }
+//
+//        ServerConnection connection = (ServerConnection) event.getSource();
+//        connection.sendPluginMessage(CHANNEL, out.toByteArray());
+//    }
+
+    private void handleLeaderboardRequest(ByteArrayDataInput in, PluginMessageEvent event) {
+
+        UUID requester = UUID.fromString(in.readUTF());
+
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+
+        ServerConnection connection = (ServerConnection) event.getSource();
+        Player player = connection.getPlayer();
+
+        out.writeUTF("LEADERBOARD_RESPONSE");
+        out.writeUTF(requester.toString());
+
+        // Viewer stats
+        out.writeLong(playtimeDataManager.getTotalPlaytime(requester));
+        out.writeInt(playtimeDataManager.getRankIndex(requester));
+        out.writeLong(playtimeDataManager.getFirstJoin(requester));
+        out.writeLong(playtimeDataManager.getLastSeen(requester));
+        out.writeInt(playtimeDataManager.getJoinCount(requester));
+        out.writeBoolean(true);
+        out.writeUTF(player.getCurrentServer().map(c -> c.getServerInfo().getName()).orElse("Unknown"));
+
+        List<LeaderboardEntry> leaderboard = leaderboardManager.getCache();
+
+        out.writeInt(leaderboard.size());
+
+        for (LeaderboardEntry entry : leaderboard) {
+            out.writeUTF(entry.getUuid().toString());
+            out.writeUTF(entry.getUsername());
+            out.writeLong(entry.getTotalMinutes());
+            out.writeInt(entry.getRankIndex());
+            out.writeLong(entry.getFirstJoin());
+            out.writeLong(entry.getLastSeen());
+            out.writeInt(entry.getJoinCount());
+            out.writeBoolean(entry.isOnline());
+            out.writeUTF(entry.getServerName());
+        }
+
+        connection.sendPluginMessage(CHANNEL, out.toByteArray());
     }
 }

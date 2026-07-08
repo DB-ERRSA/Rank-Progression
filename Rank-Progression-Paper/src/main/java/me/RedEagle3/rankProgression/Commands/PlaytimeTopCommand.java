@@ -4,7 +4,7 @@ import me.RedEagle3.rankProgression.GUI.LeaderboardGUI;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
-public class PlaytimeTopCommand implements CommandExecutor {
+public class PlaytimeTopCommand implements CommandExecutor { // TODO: Not needed?
 
     private final LeaderboardGUI gui;
 
@@ -19,7 +19,7 @@ public class PlaytimeTopCommand implements CommandExecutor {
             return true;
         }
 
-        gui.open(player);
+        //gui.open(player);
         return true;
     }
 }

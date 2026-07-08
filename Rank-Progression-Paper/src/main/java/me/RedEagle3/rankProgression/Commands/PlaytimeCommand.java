@@ -44,7 +44,7 @@ public class PlaytimeCommand implements CommandExecutor {
 
             if (sub.equals("top") || sub.equals("leaderboard")) {
 
-                leaderboardGUI.open(player);
+                proxyMessenger.requestLeaderboard(player);
                 return true;
             }
         }

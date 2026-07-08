@@ -178,6 +178,18 @@ public class PlaytimeDataManager {
         }
     }
 
+    public void setLastSeen(UUID uuid, long timestamp) {
+        try {playerNode(uuid).node("last-seen").set(timestamp);
+            save();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public long getLastSeen(UUID uuid) {
+        return playerNode(uuid).node("last-seen").getLong(0);
+    }
+
     private void safeSet(ConfigurationNode node, Object value) {
         try {
             node.set(value);

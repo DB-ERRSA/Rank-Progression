@@ -1,11 +1,10 @@
 package me.RedEagle3.rankProgression.GUI;
 
-import me.RedEagle3.rankProgression.Managers.LeaderboardManager;
-import me.RedEagle3.rankProgression.Managers.PlayerDataManager;
-import me.RedEagle3.rankProgression.Managers.PlaytimeManager;
+import me.RedEagle3.rankProgression.Managers.LeaderboardCacheManager;
 import me.RedEagle3.rankProgression.Managers.RankManager;
 import me.RedEagle3.rankProgression.Models.LeaderboardEntry;
-import me.RedEagle3.rankProgression.Models.RankMilestone;
+import me.RedEagle3.rankProgression.Utils.TextFormatter;
+import me.RedEagle3.rankProgression.Utils.TimeFormatter;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -13,34 +12,30 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
-import me.RedEagle3.rankProgression.Utils.TimeFormatter;
-import org.bukkit.Statistic;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class LeaderboardGUI {
 
-    private final LeaderboardManager leaderboardManager;
-    private final PlaytimeManager playtimeManager;
+    private final LeaderboardCacheManager leaderboardCacheManager;
     private final RankManager rankManager;
-    private  final PlayerDataManager playerDataManager;
 
-    public LeaderboardGUI(LeaderboardManager leaderboardManager,
-                          PlaytimeManager playtimeManager, RankManager rankManager, PlayerDataManager playerDataManager) {
-        this.leaderboardManager = leaderboardManager;
-        this.playtimeManager = playtimeManager;
+    public LeaderboardGUI(
+            LeaderboardCacheManager leaderboardCacheManager,
+            RankManager rankManager
+    ) {
+        this.leaderboardCacheManager = leaderboardCacheManager;
         this.rankManager = rankManager;
-        this.playerDataManager = playerDataManager;
     }
 
-    public void open(Player viewer) {
+
+    public void open(Player viewer, LeaderboardEntry viewerData) {
 
         Inventory inv = Bukkit.createInventory(null, 54, "§6Playtime Leaderboard");
 
-        var top = leaderboardManager.getTop();
+        List<LeaderboardEntry> top = leaderboardCacheManager.getLeaderboard();
 
         int[] slots = {
                 10, 11, 12, 13, 14, 15, 16,
@@ -49,109 +44,109 @@ public class LeaderboardGUI {
                 37, 38, 39, 40, 41, 42, 43
         };
 
-        // Fill leaderboard slots
+
         for (int i = 0; i < top.size() && i < slots.length; i++) {
 
             LeaderboardEntry entry = top.get(i);
-            OfflinePlayer target = Bukkit.getOfflinePlayer(entry.getUuid());
 
-            ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-            SkullMeta meta = (SkullMeta) head.getItemMeta();
-
-            meta.setOwningPlayer(target);
-
-            long ms = entry.getPlaytime();
-
-            meta.setDisplayName("§6#" + (i + 1) + " §7- §b" + target.getName());
-
-            long firstPlayed = target.getFirstPlayed();
-
-            String firstJoin = "Unknown";
-
-            if (firstPlayed > 0) {
-                firstJoin = new SimpleDateFormat("MMM dd yyyy")
-                        .format(new Date(firstPlayed));
-            }
-
-            int joins = 0;
-
-            if (target.isOnline()) {
-                joins = target.getPlayer().getStatistic(Statistic.LEAVE_GAME) + 1;
-            }
-
-            String rankDisplay = "Unknown";
-
-            int rankIndex = playerDataManager.getRankIndex(target.getUniqueId());
-
-            if (rankIndex >= 0 && rankIndex < rankManager.getMilestones().size()) {
-
-                RankMilestone milestone =
-                        rankManager.getMilestones().get(rankIndex);
-
-                String color = color(milestone.getColor());
-
-                String rankName = capitalize(milestone.getRankName());
-
-                rankDisplay = "§7[" + color + rankName + "§7]";
-            }
-
-            String lastSeenLine;
-
-            if (target.isOnline()) {
-                lastSeenLine = "§7Status: §aOnline";
-            } else {
-                long lastPlayed = target.getLastPlayed();
-                long timeAgo = System.currentTimeMillis() - lastPlayed;
-                lastSeenLine = "§7Last Seen: §f" + TimeFormatter.format(timeAgo);
-            }
-
-            meta.setLore(java.util.Arrays.asList(
-                    "§7Playtime: §f" + TimeFormatter.format(ms),
-                    "§7Rank: " + rankDisplay,
-                    "§7First Joined: §f" + firstJoin,
-                    "§7Times Joined: §f" + joins,
-                    lastSeenLine
-            ));
-
-            head.setItemMeta(meta);
+            ItemStack head = createPlayerHead(entry, i);
 
             inv.setItem(slots[i], head);
         }
 
         // Bottom middle slot = viewer stats
-        int slot = 49;
+        inv.setItem(49, createSelfIcon(viewer, viewerData));
+
+        viewer.openInventory(inv);
+    }
+
+
+    private ItemStack createPlayerHead(LeaderboardEntry entry, int i) {
+
+        ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+        SkullMeta meta = (SkullMeta) head.getItemMeta();
+
+        OfflinePlayer player = Bukkit.getOfflinePlayer(entry.getUuid());
+        meta.setOwningPlayer(player);
+
+        meta.setDisplayName("§6#" + (i + 1) + " §7- §b" + entry.getUsername());
+
+
+        String rankDisplay = "§7Unknown";
+        int rankIndex = entry.getRankIndex();
+        if (rankIndex >= 0 && rankIndex < rankManager.getMilestones().size()) {
+            rankDisplay = TextFormatter.getRankPrintLine(rankManager, rankIndex);
+        }
+
+        String status;
+
+        if (entry.isOnline()) {
+            String rawServerName = entry.getServerName();
+            String serverName = rawServerName.substring(0, 1).toUpperCase() + rawServerName.substring(1);
+            status = "§7Status: §aOnline - " + serverName;
+        } else {
+            long ago = System.currentTimeMillis() - entry.getLastSeen();
+            status = "§7Last Seen: §f" + TimeFormatter.format(ago/60000);
+        }
+
+        meta.setLore(List.of(
+                "§7Playtime: §f" + TimeFormatter.format(entry.getTotalMinutes()),
+                "§7Rank: " + rankDisplay,
+                "§7First Joined: §f" + new SimpleDateFormat("MMM dd yyyy").format(new Date(entry.getFirstJoin())),
+                "§7Times Joined: §f" + entry.getJoinCount(),
+                status
+        ));
+
+        head.setItemMeta(meta);
+
+        return head;
+    }
+
+    private ItemStack createSelfIcon(Player viewer, LeaderboardEntry viewerData) {
 
         ItemStack self = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) self.getItemMeta();
 
         meta.setOwningPlayer(viewer);
 
-        long selfMs = playtimeManager.getPlaytimeMillis(viewer.getUniqueId());
-        long selfHours = selfMs / 3_600_000;
-
         meta.setDisplayName("§aYour Stats");
 
-        meta.setLore(java.util.Arrays.asList(
-                "§7Playtime: §f" + TimeFormatter.format(selfMs),
-                "§7First Join: §f" + new SimpleDateFormat("MMM dd yyyy")
-                        .format(new Date(viewer.getFirstPlayed()))
+        String rankDisplay = "Unknown";
+
+        int rankIndex = viewerData.getRankIndex();
+
+        if (rankIndex >= 0 && rankIndex < rankManager.getMilestones().size()) {
+            rankDisplay = TextFormatter.getRankPrintLine(rankManager, rankIndex);
+        }
+
+        String status;
+
+        if (viewerData.isOnline()) {
+            String rawServerName = viewerData.getServerName();
+            String serverName = rawServerName.substring(0, 1).toUpperCase() + rawServerName.substring(1);
+            status = "§7Status: §aOnline - " + serverName;
+        } else {
+            long ago = System.currentTimeMillis() - viewerData.getLastSeen();
+            status = "§7Last Seen: §f" + TimeFormatter.format(ago);
+        }
+
+        String firstJoin = "Unknown";
+
+        if (viewerData.getFirstJoin() > 0) {
+            firstJoin = new SimpleDateFormat("MMM dd yyyy")
+                    .format(new Date(viewerData.getFirstJoin()));
+        }
+
+        meta.setLore(List.of(
+                "§7Playtime: §f" + TimeFormatter.format(viewerData.getTotalMinutes()),
+                "§7Rank: " + rankDisplay,
+                "§7First Joined: §f" + firstJoin,
+                "§7Times Joined: §f" + viewerData.getJoinCount(),
+                status
         ));
 
         self.setItemMeta(meta);
 
-        inv.setItem(slot, self);
-
-        viewer.openInventory(inv);
-    }
-
-    private String capitalize(String s) {
-
-        if (s == null || s.isEmpty()) return s;
-
-        return s.substring(0, 1).toUpperCase() + s.substring(1);
-    }
-
-    private String color(String text) {
-        return org.bukkit.ChatColor.translateAlternateColorCodes('&', text);
+        return self;
     }
 }

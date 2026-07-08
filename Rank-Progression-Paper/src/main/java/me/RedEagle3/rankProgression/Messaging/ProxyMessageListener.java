@@ -4,7 +4,10 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import me.RedEagle3.rankProgression.Commands.PlaytimeCommand;
 import me.RedEagle3.rankProgression.Commands.ProgressionCommand;
+import me.RedEagle3.rankProgression.GUI.LeaderboardGUI;
+import me.RedEagle3.rankProgression.Managers.LeaderboardCacheManager;
 import me.RedEagle3.rankProgression.Managers.RankManager;
+import me.RedEagle3.rankProgression.Models.LeaderboardEntry;
 import me.RedEagle3.rankProgression.Models.RankMilestone;
 import me.RedEagle3.rankProgression.Utils.TextFormatter;
 import org.bukkit.Bukkit;
@@ -23,13 +26,17 @@ public class ProxyMessageListener implements PluginMessageListener {
     private final RankManager rankManager;
     private final PlaytimeCommand playtimeCommand;
     private final ProgressionCommand progressionCommand;
+    private final LeaderboardCacheManager leaderboardCacheManager;
+    private final LeaderboardGUI leaderboardGUI;
 
-    public ProxyMessageListener(JavaPlugin plugin, ProxyMessenger proxyMessenger, RankManager rankManager, PlaytimeCommand playtimeCommand, ProgressionCommand progressionCommand) {
+    public ProxyMessageListener(JavaPlugin plugin, ProxyMessenger proxyMessenger, RankManager rankManager, PlaytimeCommand playtimeCommand, ProgressionCommand progressionCommand, LeaderboardCacheManager leaderboardCacheManager, LeaderboardGUI leaderboardGUI) {
         this.plugin = plugin;
         this.proxyMessenger = proxyMessenger;
         this.rankManager = rankManager;
         this.playtimeCommand = playtimeCommand;
         this.progressionCommand = progressionCommand;
+        this.leaderboardCacheManager = leaderboardCacheManager;
+        this.leaderboardGUI = leaderboardGUI;
     }
 
     @Override
@@ -61,6 +68,10 @@ public class ProxyMessageListener implements PluginMessageListener {
 
             case "PLAYTIME_EXPORT_COMPLETE":
                 handlePlaytimeExportComplete(in);
+                break;
+
+            case "LEADERBOARD_RESPONSE":
+                handleLeaderboardResponse(in);
                 break;
 
             default:
@@ -175,5 +186,48 @@ public class ProxyMessageListener implements PluginMessageListener {
         if (!(admin == null)) {
             admin.sendMessage("§aExport complete! Saved §e" + playerCount + " §aplayers to §e" + fileName);
         }
+    }
+
+    public void handleLeaderboardResponse(ByteArrayDataInput in) {
+
+        UUID requester = UUID.fromString(in.readUTF());
+
+        // Viewer stats
+        long totalMinutes = in.readLong();
+        int rankIndex = in.readInt();
+        long firstJoin = in.readLong();
+        long lastSeen = in.readLong();
+        int joinCount = in.readInt();
+        boolean online = in.readBoolean();
+        String serverName = in.readUTF();
+
+        Player viewer = Bukkit.getPlayer(requester);
+        if (viewer == null) {
+            return;
+        }
+
+        LeaderboardEntry viewerData = new LeaderboardEntry(requester, viewer.getName(), totalMinutes, rankIndex, firstJoin, lastSeen, joinCount, online, serverName);
+
+        int size = in.readInt();
+
+        List<LeaderboardEntry> leaderboard = new ArrayList<>();
+
+        for (int i = 0; i < size; i++) {
+
+            UUID uuid = UUID.fromString(in.readUTF());
+            String username = in.readUTF();
+            long minutes = in.readLong();
+            int rank = in.readInt();
+            long first = in.readLong();
+            long last = in.readLong();
+            int joins = in.readInt();
+            boolean isOnline = in.readBoolean();
+            String server = in.readUTF();
+
+            leaderboard.add(new LeaderboardEntry(uuid, username, minutes, rank, first, last, joins, isOnline, server));
+        }
+
+        leaderboardCacheManager.updateLeaderboard(leaderboard);
+        leaderboardGUI.open(viewer, viewerData);
     }
 }

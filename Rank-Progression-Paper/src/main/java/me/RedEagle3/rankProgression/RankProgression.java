@@ -28,10 +28,11 @@ public class RankProgression extends JavaPlugin {
         RankManager rankManager = new RankManager(this);
         PlayerDataManager playerDataManager = new PlayerDataManager(this);
         ProxyMessenger proxyMessenger = new ProxyMessenger(this, playtimeManager);
-        LeaderboardManager leaderboardManager = new LeaderboardManager(this);
+        LeaderboardManager leaderboardManager = new LeaderboardManager(this); // TODO Old?
+        LeaderboardCacheManager leaderboardCacheManager = new LeaderboardCacheManager();
 
         // === GUIS ===
-        LeaderboardGUI leaderboardGUI = new LeaderboardGUI(leaderboardManager, playtimeManager, rankManager, playerDataManager);
+        LeaderboardGUI leaderboardGUI = new LeaderboardGUI(leaderboardCacheManager, rankManager);
         ProgressionGUI progressionGUI = new ProgressionGUI(rankManager);
 
         // === COMMANDS ===
@@ -51,7 +52,7 @@ public class RankProgression extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this, proxyMessenger, rankManager), this);
 
         // === PROXY SETUP ===
-        getServer().getMessenger().registerIncomingPluginChannel(this, "rankprogression:main", new ProxyMessageListener(this, proxyMessenger, rankManager, playtimeCommand, progressionCommand));
+        getServer().getMessenger().registerIncomingPluginChannel(this, "rankprogression:main", new ProxyMessageListener(this, proxyMessenger, rankManager, playtimeCommand, progressionCommand, leaderboardCacheManager, leaderboardGUI));
         Bukkit.getMessenger().registerOutgoingPluginChannel(this, "rankprogression:main");
 
         // initial leaderboard build

@@ -7,7 +7,7 @@
 
     <groupId>me.RedEagle3</groupId>
     <artifactId>rank-progression-parent</artifactId>
-    <version>0.7.2</version>
+    <version>0.8.2</version>
 
     <packaging>pom</packaging>
 
