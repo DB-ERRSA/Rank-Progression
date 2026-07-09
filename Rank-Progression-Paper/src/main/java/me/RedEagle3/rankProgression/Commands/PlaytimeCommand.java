@@ -1,8 +1,5 @@
 package me.RedEagle3.rankProgression.Commands;
 
-import me.RedEagle3.rankProgression.GUI.LeaderboardGUI;
-import me.RedEagle3.rankProgression.Managers.PlayerDataManager;
-import me.RedEagle3.rankProgression.Managers.PlaytimeManager;
 import me.RedEagle3.rankProgression.Managers.RankManager;
 import me.RedEagle3.rankProgression.Messaging.ProxyMessenger;
 import me.RedEagle3.rankProgression.Utils.TextFormatter;
@@ -16,16 +13,10 @@ import java.util.Date;
 
 public class PlaytimeCommand implements CommandExecutor {
 
-    private final PlaytimeManager playtimeManager;
-    private final LeaderboardGUI leaderboardGUI;
-    private final PlayerDataManager playerDataManager;
     private final RankManager rankManager;
     private final ProxyMessenger proxyMessenger;
 
-    public PlaytimeCommand(PlaytimeManager playtimeManager, LeaderboardGUI leaderboardGUI, PlayerDataManager playerDataManager, RankManager rankManager, ProxyMessenger proxyMessenger) {
-        this.playtimeManager = playtimeManager;
-        this.leaderboardGUI = leaderboardGUI;
-        this.playerDataManager = playerDataManager;
+    public PlaytimeCommand(RankManager rankManager, ProxyMessenger proxyMessenger) {
         this.rankManager = rankManager;
         this.proxyMessenger = proxyMessenger;
     }

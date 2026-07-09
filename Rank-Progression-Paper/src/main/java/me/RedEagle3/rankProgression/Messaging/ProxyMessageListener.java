@@ -92,7 +92,10 @@ public class ProxyMessageListener implements PluginMessageListener {
         plugin.getLogger().info(player.getName() + " initialized at rank " + rankIndex + ", for total playtime: " + totalPlaytime);
         rankManager.assignRank(player, rankIndex);
         String rankLine = TextFormatter.getRankPrintLine(rankManager, rankIndex);
-        if (rankIndex != -1) { player.sendMessage("§6Welcome back to the server, §b" + player.getName() + "§6! You have been promoted to " + rankLine + " §6based on your previous playtime."); }
+        if (rankIndex != -1) {
+            player.sendMessage("§6Welcome back to the server, §b" + player.getName() + "§6! You have been promoted to " + rankLine + " §6based on your previous playtime.");
+            player.sendMessage("§6Check out your stats with §b/playtime§6, or see your rank progress with §b/progression§6.");
+        }
         proxyMessenger.playerInitialized(player, rankIndex);
     }
 

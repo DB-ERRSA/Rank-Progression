@@ -24,11 +24,8 @@ public class RankProgression extends JavaPlugin {
         saveDefaultConfig();
 
         // === MANAGERS ===
-        PlaytimeManager playtimeManager = new PlaytimeManager();
         RankManager rankManager = new RankManager(this);
-        PlayerDataManager playerDataManager = new PlayerDataManager(this);
-        ProxyMessenger proxyMessenger = new ProxyMessenger(this, playtimeManager);
-        LeaderboardManager leaderboardManager = new LeaderboardManager(this); // TODO Old?
+        ProxyMessenger proxyMessenger = new ProxyMessenger(this);
         LeaderboardCacheManager leaderboardCacheManager = new LeaderboardCacheManager();
 
         // === GUIS ===
@@ -36,7 +33,7 @@ public class RankProgression extends JavaPlugin {
         ProgressionGUI progressionGUI = new ProgressionGUI(rankManager);
 
         // === COMMANDS ===
-        PlaytimeCommand playtimeCommand = new PlaytimeCommand(playtimeManager, leaderboardGUI, playerDataManager, rankManager, proxyMessenger);
+        PlaytimeCommand playtimeCommand = new PlaytimeCommand(rankManager, proxyMessenger);
         ProgressionCommand progressionCommand = new ProgressionCommand(progressionGUI, proxyMessenger);
         SyncRankProgressionCommand syncRankProgressionCommand = new SyncRankProgressionCommand(this, proxyMessenger);
         ExportPlaytimeDataCommand exportPlaytimeDataCommand = new ExportPlaytimeDataCommand(proxyMessenger);
@@ -54,9 +51,6 @@ public class RankProgression extends JavaPlugin {
         // === PROXY SETUP ===
         getServer().getMessenger().registerIncomingPluginChannel(this, "rankprogression:main", new ProxyMessageListener(this, proxyMessenger, rankManager, playtimeCommand, progressionCommand, leaderboardCacheManager, leaderboardGUI));
         Bukkit.getMessenger().registerOutgoingPluginChannel(this, "rankprogression:main");
-
-        // initial leaderboard build
-        leaderboardManager.rebuild();
 
         // === TASKS ===
         long interval = getConfig().getLong("check-interval", 5);

@@ -30,11 +30,9 @@ public class PlayerJoinListener implements Listener {
         if (!rankManager.isLoaded()) {
             rankManager.getWaitingForRankData().add(player.getUniqueId());
             Bukkit.getScheduler().runTaskLater(plugin, () -> proxyMessenger.requestRankData(player), INITIAL_SYNC_DELAY/2);
-            System.out.println("TEMP: Requesting rank data before processing join");
             return;
         }
 
-        System.out.println("TEMP: Scheduling delayed task for player init!");
         Bukkit.getScheduler().runTaskLater(plugin, () -> proxyMessenger.playerJoin(event.getPlayer()), INITIAL_SYNC_DELAY);
     }
 }

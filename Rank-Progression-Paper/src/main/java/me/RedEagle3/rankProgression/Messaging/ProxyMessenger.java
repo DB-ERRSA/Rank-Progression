@@ -2,7 +2,6 @@ package me.RedEagle3.rankProgression.Messaging;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import me.RedEagle3.rankProgression.Managers.PlaytimeManager;
 import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -14,16 +13,14 @@ public class ProxyMessenger {
     private static final String CHANNEL = "rankprogression:main";
 
     private final JavaPlugin plugin;
-    private  final PlaytimeManager playtimeManager;
 
-    public ProxyMessenger(JavaPlugin plugin, PlaytimeManager playtimeManager) {
+    public ProxyMessenger(JavaPlugin plugin) {
         this.plugin = plugin;
-        this.playtimeManager = playtimeManager;
     }
 
     public void updatePlaytime(Player player) {
 
-        long minutes = playtimeManager.getLocalPlaytimeMinutes(player);
+        long minutes = player.getStatistic(Statistic.PLAY_ONE_MINUTE)/20L/60L;
 
         // TODO: Change this to get server name from velocity instead of local config
         String serverName = plugin.getConfig().getString("server-name");
@@ -41,7 +38,7 @@ public class ProxyMessenger {
 
     public void playerJoin(Player player) {
 
-        long minutes = playtimeManager.getLocalPlaytimeMinutes(player);
+        long minutes = player.getStatistic(Statistic.PLAY_ONE_MINUTE)/20L/60L;
 
         String serverName = plugin.getConfig().getString("server-name");
         if (serverName == null || serverName.isBlank()) {serverName = "unknown";}
