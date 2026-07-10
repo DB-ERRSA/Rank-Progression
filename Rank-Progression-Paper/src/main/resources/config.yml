@@ -9,9 +9,9 @@ server-name: server
 check-interval: 1
 
 # Allow promotions in server?
-# If set to false, playtime is still tracked but players must connect to another server to get promoted (NOT IMPLEMENTED)
+# If set to false, playtime is still tracked but players must connect to another server to get promoted
 allow-promotions: true
 
 # Broadcast promotions to the whole server?
-# I set to false, it will only send to the player directly
+# If set to false, promotion messages will only send to the player directly
 broadcast-promotions: true

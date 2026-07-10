@@ -114,9 +114,15 @@ public class ProxyMessageListener implements PluginMessageListener {
 
         rankManager.promoteRank(player, rankIndex, track);
 
-        // TODO: Enable/disable global broadcast
         String rankLine = TextFormatter.getRankPrintLine(rankManager, rankIndex);
-        Bukkit.broadcastMessage("§b"+ player.getName() + " §6has achieved " + rankLine + " §6rank!");
+        String promotionMessage = "§b"+ player.getName() + " §6has achieved " + rankLine + " §6rank!";
+        boolean broadcastPromotions = plugin.getConfig().getBoolean("broadcast-promotions", true);
+
+        if (broadcastPromotions) {
+            Bukkit.broadcastMessage(promotionMessage);
+        } else {
+            player.sendMessage(promotionMessage);
+        }
 
         proxyMessenger.playerPromoted(player, rankIndex);
     }

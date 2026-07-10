@@ -6,12 +6,16 @@ import me.RedEagle3.rankProgression.Utils.TextFormatter;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
-public class PlaytimeCommand implements CommandExecutor {
+public class PlaytimeCommand implements CommandExecutor, TabCompleter {
 
     private final RankManager rankManager;
     private final ProxyMessenger proxyMessenger;
@@ -67,5 +71,26 @@ public class PlaytimeCommand implements CommandExecutor {
         player.sendMessage("§eFirst Joined: §f" + firstJoinDate);
         player.sendMessage("§eTimes Joined: §f" + joinCount);
         player.sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━");
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+
+        if (args.length == 1) {
+
+            List<String> completions = new ArrayList<>();
+
+            if ("top".startsWith(args[0].toLowerCase())) {
+                completions.add("top");
+            }
+
+            if ("leaderboard".startsWith(args[0].toLowerCase())) {
+                completions.add("leaderboard");
+            }
+
+            return completions;
+        }
+
+        return Collections.emptyList();
     }
 }

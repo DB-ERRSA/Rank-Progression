@@ -3,19 +3,25 @@ version: '0.4.0'
 main: me.RedEagle3.rankProgression.RankProgression
 api-version: '1.21'
 
-description: A custom rank progression system made for the ERRSA MC server.
+description: A custom rank progression and playtime tracking system for the ERRSA Minecraft server.
 author: The ERRSA MC Dev Team
 website: https://campusgroups.erau.edu/errsa/craft/
 
 commands:
   playtime:
-    description: Shows your playtime statistics
+    description: Displays your playtime statistics.
     aliases: [pt]
+    permission: rankprogression.playtime
   progression:
-    description: Shows your rank progression
+    description: Opens the rank progression GUI.
+    permission: rankprogression.progression
   syncrankprogression:
-    description: Syncs all offline player's data into the proxy YML
+    description: Syncs all offline player's data into the proxy YML.
     permission: rankprogression.syncrankprogression
   exportplaytimedata:
-    description: Exports playtime data as an excel sheet for analytics
+    description: Exports playtime data as an excel sheet for analytics.
     permission: rankprogression.exportplaytimedata
+
+permissions:
+  rankprogression.autopromote:
+    description: Allows the player to be promoted when hitting playtime milestones.
