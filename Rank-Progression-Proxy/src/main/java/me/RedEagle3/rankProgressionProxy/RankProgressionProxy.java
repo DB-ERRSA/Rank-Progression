@@ -77,8 +77,6 @@ public class RankProgressionProxy {
 
         int newJoinCount = playtimeDataManager.getJoinCount(uuid) + 1;
         playtimeDataManager.setJoinCount(uuid, newJoinCount);
-
-        logger.info("TEMP: " + event.getPlayer().getUsername() + " joined, incrementing join-count to: " + newJoinCount);
     }
 
     @Subscribe

@@ -8,92 +8,118 @@ track-name: "rank_progression"
 # Rank milestones
 ranks:
   coal:
-    requirement: 1h
-    rewards:
-      - "Coming soon..."
+    requirement: 30m
     icon: "●"
     color: "&0"
+    reward-text: "1 Diamond and 1 Emerald"
+    reward-commands:
+      - "give %player% diamond 1"
+      - "give %player% emerald 1"
   iron:
-    requirement: 3h
-    rewards:
-      - "Coming soon..."
+    requirement: 1.5h
     icon: "▲"
     color: "&8"
+    reward-text: "2 Diamonds and 2 Emeralds"
+    reward-commands:
+      - "give %player% diamond 2"
+      - "give %player% emerald 2"
   quartz:
-    requirement: 5h
-    rewards:
-      - "Coming soon..."
+    requirement: 3h
     icon: "■"
     color: "&f"
+    reward-text: "3 Diamonds and 3 Emeralds"
+    reward-commands:
+      - "give %player% diamond 3"
+      - "give %player% emerald 3"
   copper:
-    requirement: 12h
-    rewards:
-      - "Coming soon..."
+    requirement: 5h
     icon: "⬟"
     color: "&6"
+    reward-text: "4 Diamonds and 4 Emeralds"
+    reward-commands:
+      - "give %player% diamond 4"
+      - "give %player% emerald 4"
   gold:
-    requirement: 24h
-    rewards:
-      - "Coming soon..."
+    requirement: 8h
     icon: "⬣"
     color: "&e"
+    reward-text: "5 Diamonds and 5 Emeralds"
+    reward-commands:
+      - "give %player% diamond 5"
+      - "give %player% emerald 5"
   lapis:
-    requirement: 48h
-    rewards:
-      - "Coming soon..."
+    requirement: 12h
     icon: "✿"
     color: "&9"
+    reward-text: "6 Diamonds and 6 Emeralds"
+    reward-commands:
+      - "give %player% diamond 6"
+      - "give %player% emerald 6"
   redstone:
-    requirement: 96h
-    rewards:
-      - "Coming soon..."
+    requirement: 18h
     icon: "⚡"
     color: "&c"
+    reward-text: "7 Diamonds and 7 Emeralds"
+    reward-commands:
+      - "give %player% diamond 7"
+      - "give %player% emerald 7"
   amethyst:
-    requirement: 150h
-    rewards:
-      - "Coming soon..."
+    requirement: 24h
     icon: "◆"
     color: "&d"
+    reward-text: "8 Diamonds and 8 Emeralds"
+    reward-commands:
+      - "give %player% diamond 8"
+      - "give %player% emerald 8"
   emerald:
-    requirement: 250h
-    rewards:
-      - "Coming soon..."
+    requirement: 48h
     icon: "♣"
     color: "&a"
+    reward-text: "9 Diamonds and 9 Emeralds"
+    reward-commands:
+      - "give %player% diamond 9"
+      - "give %player% emerald 9"
   diamond:
-    requirement: 400h
-    rewards:
-      - "Coming soon..."
+    requirement: 96h
     icon: "♦"
     color: "&b"
+    reward-text: "10 Diamonds and 10 Emeralds"
+    reward-commands:
+      - "give %player% diamond 10"
+      - "give %player% emerald 10"
   netherite:
-    requirement: 650h
-    rewards:
-      - "Coming soon..."
+    requirement: 144h
     icon: "⌘"
     color: "&4"
+    reward-text: "11 Diamonds and 11 Emeralds"
+    reward-commands:
+      - "give %player% diamond 11"
+      - "give %player% emerald 11"
   echo:
-    requirement: 1000h
-    rewards:
-      - "Coming soon..."
+    requirement: 240h
     icon: "∞"
     color: "&1"
+    reward-text: "12 Diamonds and 12 Emeralds"
+    reward-commands:
+      - "give %player% diamond 12"
+      - "give %player% emerald 12"
   ender:
-    requirement: 1500h
-    rewards:
-      - "Coming soon..."
+    requirement: 480h
     icon: "❇"
     color: "&5"
+    reward-text: "13 Diamonds and 13 Emeralds"
+    reward-commands:
+      - "give %player% diamond 13"
+      - "give %player% emerald 13"
   astral:
-    requirement: 2500h
-    rewards:
-      - "Coming soon..."
+    requirement: 720h
     icon: "✳"
     color: "&3"
+    reward-text: "14 Diamonds and 14 Emeralds"
+    reward-commands:
+      - "give %player% diamond 14"
+      - "give %player% emerald 14"
   zenith:
-    requirement: 10000h
-    rewards:
-      - "Coming soon..."
+    requirement: 99999h
     icon: "☠"
     color: "&4"

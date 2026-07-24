@@ -22,7 +22,6 @@ public class ProxyMessenger {
 
         long minutes = player.getStatistic(Statistic.PLAY_ONE_MINUTE)/20L/60L;
 
-        // TODO: Change this to get server name from velocity instead of local config
         String serverName = plugin.getConfig().getString("server-name");
         if (serverName == null || serverName.isBlank()) {serverName = "unknown";}
 
@@ -80,6 +79,16 @@ public class ProxyMessenger {
         player.sendPluginMessage(plugin, CHANNEL, out.toByteArray());
     }
 
+    public void checkZenithPromotion(Player player) {
+
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+
+        out.writeUTF("CHECK_ZENITH_PROMOTION");
+        out.writeUTF(player.getUniqueId().toString());
+
+        player.sendPluginMessage(plugin, CHANNEL, out.toByteArray());
+    }
+
     public void playerPromoted(Player player, int rankIndex) {
 
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
@@ -87,6 +96,17 @@ public class ProxyMessenger {
         out.writeUTF("PLAYER_PROMOTED");
         out.writeUTF(player.getUniqueId().toString());
         out.writeInt(rankIndex);
+
+        player.sendPluginMessage(plugin, CHANNEL, out.toByteArray());
+    }
+
+    public void playerZenithPromoted(Player player, UUID newZenithUUID, UUID oldZenithUUID) {
+
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+
+        out.writeUTF("PLAYER_ZENITH_PROMOTED");
+        out.writeUTF(newZenithUUID.toString());
+        out.writeUTF(oldZenithUUID.toString());
 
         player.sendPluginMessage(plugin, CHANNEL, out.toByteArray());
     }

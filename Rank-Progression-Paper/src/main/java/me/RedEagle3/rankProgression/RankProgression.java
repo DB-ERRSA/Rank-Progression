@@ -30,7 +30,7 @@ public class RankProgression extends JavaPlugin {
         LeaderboardCacheManager leaderboardCacheManager = new LeaderboardCacheManager();
 
         // === GUIS ===
-        LeaderboardGUI leaderboardGUI = new LeaderboardGUI(leaderboardCacheManager, rankManager);
+        LeaderboardGUI leaderboardGUI = new LeaderboardGUI(leaderboardCacheManager, rankManager, this);
         ProgressionGUI progressionGUI = new ProgressionGUI(rankManager);
 
         // === COMMANDS ===
@@ -79,7 +79,7 @@ public class RankProgression extends JavaPlugin {
 
                     if (allowPromotions) {
                         proxyMessenger.checkPromotion(player);
-                        // proxyMessenger.checkZenith(player); TODO: Implement
+                        proxyMessenger.checkZenithPromotion(player);
                     }
                 }
             }

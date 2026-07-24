@@ -168,13 +168,10 @@ public class PlaytimeDataManager {
     }
 
     public void setZenith(UUID uuid, boolean value) {
-
-        safeSet(playerNode(uuid).node("zenith"), value);
-
-        try {
+        try {playerNode(uuid).node("zenith").set(value);
             save();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to save player data", e);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

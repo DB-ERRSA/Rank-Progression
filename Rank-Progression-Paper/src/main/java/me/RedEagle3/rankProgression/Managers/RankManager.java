@@ -2,6 +2,7 @@ package me.RedEagle3.rankProgression.Managers;
 
 import me.RedEagle3.rankProgression.Models.RankMilestone;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -41,10 +42,14 @@ public class RankManager {
             return;
         }
 
-        // TODO: Pull other reward commands from config
-//        for (String command : rank.getRewards()) {
-//            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player%", player.getName()));
-//        }
+        for (int i = 0; i <= rankIndex; i++) {
+
+            RankMilestone milestone = getRank(i);
+
+            for (String command : milestone.getRewardCommands()) {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player%", player.getName()));
+            }
+        }
 
         String command = "lp user " + player.getName() + " parent add p-" + rank.getRankName();
 
@@ -53,12 +58,39 @@ public class RankManager {
 
     public void promoteRank(Player player, int rankIndex, String track) {
 
-        // TODO: Pull other reward commands from config
-//        for (String command : rank.getRewards()) {
-//            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player%", player.getName()));
-//        }
+        RankMilestone milestone = getRank(rankIndex);
+
+        for (String command : milestone.getRewardCommands()) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player%", player.getName()));
+        }
 
         String command = "lp user " + player.getName() + " promote " + track;
+
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+    }
+
+    public void zenithPromoteRank(Player player, int rankIndex, String track) {
+
+        RankMilestone milestone = getRank(rankIndex);
+
+        for (String command : milestone.getRewardCommands()) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player%", player.getName()));
+        }
+    }
+
+    public void setZenithDemote(OfflinePlayer oldZenithPlayer, int oldZenithsRankIndex, String track) {
+
+        RankMilestone rank = getRank(oldZenithsRankIndex);
+        if (rank == null) {return;}
+
+        String command = "lp user " + oldZenithPlayer.getName() + " parent settrack " + track + " p-" + rank.getRankName();
+
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+    }
+
+    public void setZenithPromote(Player newZenithPlayer, String track) {
+
+        String command = "lp user " + newZenithPlayer.getName() + " parent settrack " + track + " p-zenith";
 
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
     }

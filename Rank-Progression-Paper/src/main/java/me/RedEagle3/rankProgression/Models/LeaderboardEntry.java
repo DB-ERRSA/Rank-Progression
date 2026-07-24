@@ -14,6 +14,8 @@ public class LeaderboardEntry {
     private final long lastSeen;
     private final int joinCount;
 
+    private final boolean isZenith;
+
     private final boolean online;
     private final String serverName;
 
@@ -25,6 +27,7 @@ public class LeaderboardEntry {
             long firstJoin,
             long lastSeen,
             int joinCount,
+            boolean isZenith,
             boolean online,
             String serverName
     ) {
@@ -36,6 +39,7 @@ public class LeaderboardEntry {
         this.firstJoin = firstJoin;
         this.lastSeen = lastSeen;
         this.joinCount = joinCount;
+        this.isZenith = isZenith;
         this.online = online;
         this.serverName = serverName;
     }
@@ -66,6 +70,10 @@ public class LeaderboardEntry {
 
     public int getJoinCount() {
         return joinCount;
+    }
+
+    public boolean getIsZenith() {
+        return isZenith;
     }
 
     public boolean isOnline() {

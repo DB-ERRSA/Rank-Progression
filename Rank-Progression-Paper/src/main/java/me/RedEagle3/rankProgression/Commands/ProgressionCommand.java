@@ -27,7 +27,7 @@ public class ProgressionCommand implements CommandExecutor {
         return true;
     }
 
-    public void openProgression(Player player, long totalMinutes, int rankIndex) {
-        gui.open(player, totalMinutes, rankIndex);
+    public void openProgression(Player player, long totalMinutes, int rankIndex, boolean isZenith) {
+        gui.open(player, totalMinutes, rankIndex, isZenith);
     }
 }

@@ -67,8 +67,16 @@ public class PluginMessageListener {
                 handleCheckPromotion(in, event);
                 break;
 
+            case "CHECK_ZENITH_PROMOTION":
+                handleCheckZenithPromotion(in, event);
+                break;
+
             case "PLAYER_PROMOTED":
                 handlePlayerPromoted(in);
+                break;
+
+            case "PLAYER_ZENITH_PROMOTED":
+                handlePlayerZenithPromoted(in);
                 break;
 
             case "REQUEST_RANK_DATA":
@@ -157,20 +165,53 @@ public class PluginMessageListener {
         UUID uuid = UUID.fromString(in.readUTF());
         int currentRank = playtimeDataManager.getRankIndex(uuid);
         long totalPlaytime = playtimeDataManager.getTotalPlaytime(uuid);
-
         int expectedRank = rankDataManager.getRankIndexForPlaytime(totalPlaytime);
-
         boolean promoted = expectedRank > currentRank;
-
         String track = rankDataManager.getTrackName();
+        boolean isZenith = playtimeDataManager.hasZenith(uuid);
 
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
 
         out.writeUTF("PROMOTION_RESULT");
         out.writeUTF(uuid.toString());
         out.writeBoolean(promoted);
-        out.writeInt(currentRank+1); // TODO: Changed this from expectedRank to currentRank+1 to handle if you're behind a rank, not tested though
+        out.writeInt(currentRank+1);
         out.writeUTF(track);
+        out.writeBoolean(isZenith);
+
+        ServerConnection serverConnection = (ServerConnection) event.getSource();
+        serverConnection.sendPluginMessage(MinecraftChannelIdentifier.from("rankprogression:main"), out.toByteArray());
+    }
+
+    private void handleCheckZenithPromotion(ByteArrayDataInput in, PluginMessageEvent event) {
+
+        UUID uuid = UUID.fromString(in.readUTF());
+
+        if (playtimeDataManager.hasZenith(uuid)) {
+            return;
+        } else if (leaderboardManager.getCache().isEmpty()) {
+            return;
+        } else if (!uuid.equals(leaderboardManager.getCache().getFirst().getUuid())) {
+            return;
+        }
+
+        UUID newZenithUUID = uuid;
+        UUID oldZenithUUID = playtimeDataManager.getAllPlayers().stream().filter(playerUUID -> playtimeDataManager.hasZenith(playerUUID)).findFirst().orElse(null);
+
+        if (oldZenithUUID == null) {
+            oldZenithUUID = newZenithUUID;
+        }
+
+        String track = rankDataManager.getTrackName();
+        int oldZenithsRankIndex = playtimeDataManager.getRankIndex(oldZenithUUID);
+
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+
+        out.writeUTF("ZENITH_PROMOTION_RESULT");
+        out.writeUTF(newZenithUUID.toString());
+        out.writeUTF(oldZenithUUID.toString());
+        out.writeUTF(track);
+        out.writeInt(oldZenithsRankIndex);
 
         ServerConnection serverConnection = (ServerConnection) event.getSource();
         serverConnection.sendPluginMessage(MinecraftChannelIdentifier.from("rankprogression:main"), out.toByteArray());
@@ -182,6 +223,15 @@ public class PluginMessageListener {
         int rankIndex = in.readInt();
 
         playtimeDataManager.setRankIndex(uuid, rankIndex);
+    }
+
+    private void handlePlayerZenithPromoted(ByteArrayDataInput in) {
+
+        UUID newZenithUUID = UUID.fromString(in.readUTF());
+        UUID oldZenithUUID = UUID.fromString(in.readUTF());
+
+        playtimeDataManager.setZenith(oldZenithUUID, false);
+        playtimeDataManager.setZenith(newZenithUUID, true);
     }
 
     private void handleRankDataRequest(PluginMessageEvent event) {
@@ -197,12 +247,11 @@ public class PluginMessageListener {
             out.writeUTF(rank.getRankName());
             out.writeInt(rank.getIndex());
             out.writeLong(rank.getRequiredMinutes());
-            out.writeInt(rank.getRewards().size()); for (String reward : rank.getRewards()) {out.writeUTF(reward);}
+            out.writeUTF(rank.getRewardText());
+            out.writeInt(rank.getRewardCommands().size()); for (String reward : rank.getRewardCommands()) {out.writeUTF(reward);}
             out.writeUTF(rank.getIcon());
             out.writeUTF(rank.getColor());
         }
-
-        System.out.println("TEMP: Sending " + rankDataManager.getRanks().size() + " ranks");
 
         ServerConnection serverConnection = (ServerConnection) event.getSource();
         serverConnection.sendPluginMessage(CHANNEL, out.toByteArray());
@@ -217,6 +266,7 @@ public class PluginMessageListener {
         int rankIndex = playtimeDataManager.getRankIndex(uuid);
         long firstJoin = playtimeDataManager.getFirstJoin(uuid);
         int joinCount = playtimeDataManager.getJoinCount(uuid);
+        boolean isZenith = playtimeDataManager.hasZenith(uuid);
 
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
 
@@ -227,6 +277,7 @@ public class PluginMessageListener {
         out.writeLong(firstJoin);
         out.writeInt(joinCount);
         out.writeUTF(reason);
+        out.writeBoolean(isZenith);
 
         ServerConnection connection = (ServerConnection) event.getSource();
         connection.sendPluginMessage(CHANNEL, out.toByteArray());
@@ -318,35 +369,6 @@ public class PluginMessageListener {
         });
     }
 
-//    private void handleLeaderboardRequest(ByteArrayDataInput in, PluginMessageEvent event) {
-//
-//        UUID requester = UUID.fromString(in.readUTF());
-//
-//        List<LeaderboardEntry> leaderboard = leaderboardManager.getCache();
-//
-//        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-//
-//        out.writeUTF("LEADERBOARD_RESPONSE");
-//        out.writeUTF(requester.toString());
-//
-//        out.writeInt(leaderboard.size());
-//
-//        for (LeaderboardEntry entry : leaderboard) {
-//            out.writeUTF(entry.getUuid().toString());
-//            out.writeUTF(entry.getUsername());
-//            out.writeLong(entry.getTotalMinutes());
-//            out.writeInt(entry.getRankIndex());
-//            out.writeLong(entry.getFirstJoin());
-//            out.writeLong(entry.getLastSeen());
-//            out.writeInt(entry.getJoinCount());
-//            out.writeBoolean(entry.isOnline());
-//            out.writeUTF(entry.getServerName());
-//        }
-//
-//        ServerConnection connection = (ServerConnection) event.getSource();
-//        connection.sendPluginMessage(CHANNEL, out.toByteArray());
-//    }
-
     private void handleLeaderboardRequest(ByteArrayDataInput in, PluginMessageEvent event) {
 
         UUID requester = UUID.fromString(in.readUTF());
@@ -365,6 +387,7 @@ public class PluginMessageListener {
         out.writeLong(playtimeDataManager.getFirstJoin(requester));
         out.writeLong(playtimeDataManager.getLastSeen(requester));
         out.writeInt(playtimeDataManager.getJoinCount(requester));
+        out.writeBoolean(playtimeDataManager.hasZenith(requester));
         out.writeBoolean(true);
         out.writeUTF(player.getCurrentServer().map(c -> c.getServerInfo().getName()).orElse("Unknown"));
 
@@ -380,6 +403,7 @@ public class PluginMessageListener {
             out.writeLong(entry.getFirstJoin());
             out.writeLong(entry.getLastSeen());
             out.writeInt(entry.getJoinCount());
+            out.writeBoolean(entry.getIsZenith());
             out.writeBoolean(entry.isOnline());
             out.writeUTF(entry.getServerName());
         }

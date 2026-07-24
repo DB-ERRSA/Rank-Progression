@@ -22,7 +22,7 @@ public class ProgressionGUI {
         this.rankManager = rankManager;
     }
 
-    public void open(Player player, long currentMinutesPT, int currentRankIndex) {
+    public void open(Player player, long currentMinutesPT, int currentRankIndex, boolean isZenith) {
 
         Inventory inv = Bukkit.createInventory(null, 36, "§6Rank Progression");
 
@@ -53,7 +53,7 @@ public class ProgressionGUI {
             }
 
             String icon = milestone.getIcon();
-            List<String> reward = milestone.getRewards();
+            String rewardText = milestone.getRewardText();
             int progress = getProgress(currentMinutesPT, required);
 
             // TITLE
@@ -73,7 +73,7 @@ public class ProgressionGUI {
             lore.add("§fProgress: §b" + progress + "%");
             lore.add("");
             lore.add("§fRank icon: §7[" + TextFormatter.color(rankManager.getRank(milestone.getIndex()).getColor()) + icon + "§7]");
-            if (!reward.isEmpty()) {lore.add("§fReward: §7" + reward.getFirst());}  // TODO: display a list
+            if (!rewardText.isEmpty()) {lore.add("§fReward: §7" + rewardText);}
             lore.add("");
 
             if (achieved) {
@@ -88,18 +88,22 @@ public class ProgressionGUI {
             inv.setItem(slots[i], item);
         }
 
-        // === ZENITH SLOT === // TODO: Test/Impliment
-        if (currentRankIndex >= milestones.size() - 1) {
+        // === ZENITH SLOT ===
+        if (isZenith) {
 
             ItemStack zenith = new ItemStack(Material.WITHER_SKELETON_SKULL);
             ItemMeta meta = zenith.getItemMeta();
 
-            meta.setDisplayName("§5§lZENITH");
+            meta.setDisplayName("§6Achieved! - §8[§4Zenith§8] §6Rank");
 
             meta.setLore(List.of(
-                    "§7Ultimate Rank",
-                    "§7Status: §6Unlocked",
-                    "§7You are top of the progression!"
+                    "§cEarned by having the top playtime!",
+                    "",
+                    "§cStatus: §6Unlocked!",
+                    "",
+                    "§cRank icon: §8[§4☠§8]",
+                    "",
+                    "§6You are top of the progression!"
             ));
 
             zenith.setItemMeta(meta);

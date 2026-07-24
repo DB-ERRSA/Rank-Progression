@@ -42,6 +42,7 @@ public class LeaderboardManager {
                             playtimeDataManager.getFirstJoin(uuid),
                             playtimeDataManager.getLastSeen(uuid),
                             playtimeDataManager.getJoinCount(uuid),
+                            playtimeDataManager.hasZenith(uuid),
                             online,
                             serverName
                     )

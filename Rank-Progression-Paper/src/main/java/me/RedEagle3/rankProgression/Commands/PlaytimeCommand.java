@@ -49,7 +49,7 @@ public class PlaytimeCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    public void displayStats(Player player, long totalMinutes, int rankIndex, long firstJoin, int joinCount) {
+    public void displayStats(Player player, long totalMinutes, int rankIndex, long firstJoin, int joinCount, boolean isZenith) {
 
         long hours = totalMinutes / 60;
         long days = hours / 24;
@@ -57,6 +57,10 @@ public class PlaytimeCommand implements CommandExecutor, TabCompleter {
         long displayMinutes = totalMinutes % 60;
 
         String firstJoinDate = new SimpleDateFormat("MMM dd, yyyy").format(new Date(firstJoin));
+
+        if (isZenith) {
+            rankIndex = rankManager.getMilestones().size()-1;
+        }
 
         String rankLine = "§7Unknown";
         if (rankIndex >= 0 && rankIndex < rankManager.getMilestones().size()) {

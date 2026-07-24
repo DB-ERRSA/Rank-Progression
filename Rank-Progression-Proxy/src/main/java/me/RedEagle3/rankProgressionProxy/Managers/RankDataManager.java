@@ -55,23 +55,22 @@ public class RankDataManager {
 
         int index = 0;
 
-        System.out.println("TEMP: Ranks node children: " + ranksNode.childrenMap().size());
-
         for (Map.Entry<Object, ? extends ConfigurationNode> entry :
                 ranksNode.childrenMap().entrySet()) {
 
             String rankName = entry.getKey().toString();
             ConfigurationNode rankNode = entry.getValue();
             long requiredMinutes = TimeParser.parseToMinutes(rankNode.node("requirement").getString(""));
+            String rewardText = rankNode.node("reward-text").getString("");
 
-            List<String> rewards;
-            try {rewards = rankNode.node("rewards").getList(String.class, List.of());}
+            List<String> rewardCommands;
+            try {rewardCommands = rankNode.node("reward-commands").getList(String.class, List.of());}
             catch (SerializationException e) {throw new RuntimeException("Failed to load rewards for rank " + rankName, e);}
 
             String icon = rankNode.node("icon").getString("");
             String color = rankNode.node("color").getString("");
 
-            ranks.add(new RankData(rankName, index, requiredMinutes, rewards, icon, color));
+            ranks.add(new RankData(rankName, index, requiredMinutes, rewardText, rewardCommands, icon, color));
 
             index++;
         }

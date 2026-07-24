@@ -3,6 +3,7 @@
 # =========================================
 
 # The name for the paper server
+# WARNING - Renaming this with existing player data will double their playtime
 server-name: server
 
 # How often to update playtime and check for promotions (in minutes)

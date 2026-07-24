@@ -1,7 +1,7 @@
 {
   "id": "rank-progression-proxy",
   "name": "Rank-Progression-Proxy",
-  "version": "1.0",
+  "version": "1.0.0",
   "description": "A proxy-side rank progression and playtime tracking system for the ERRSA Minecraft server.",
   "authors": [
     "The ERRSA MC Dev Team"
